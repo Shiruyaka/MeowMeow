@@ -3,13 +3,13 @@ import Tkinter as tk
 
 
 class RegisterWindow(tk.Frame):
-    def __init__(self, master):
+    def __init__(self, master=None):
+        mw = tk.Tk()
+        mw.master = master
+        mw.title('MeowMeow')
+        mw.geometry('350x250')
+        mw.resizable(0, 0)
 
-        master.title('MeowMeow')
-        master.geometry('350x250')
-        master.resizable(0, 0)
-
-        tk.Frame.__init__(self, master=master)
-
+        tk.Frame.__init__(self, master=mw)
         self.grid()
-        self.createWidgets()
+
