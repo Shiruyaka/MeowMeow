@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 import Tkinter as tk
-
-def login():
-    print 'Nein'
-    pass
+import Utils
 
 class LoginWindow(tk.Frame):
     def __init__(self, master=None):
@@ -39,7 +36,7 @@ class LoginWindow(tk.Frame):
         self.password_entry = tk.Entry(self)
         self.password_entry.grid()
 
-        self.login_btn = tk.Button(self, text='Login', command=login)
+        self.login_btn = tk.Button(self, text='Login', command=Utils.login)
         self.login_btn.grid()
 
         self.register_lbl = tk.Label(self, text='Not having an account yet?', foreground='blue', activeforeground='red')
