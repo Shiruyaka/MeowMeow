@@ -1,3 +1,4 @@
+import RegisterWindow
+
 def login():
-    print 'Nein!'
     pass
