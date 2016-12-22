@@ -4,22 +4,23 @@ import RegisterWindow
 import Utils
 
 class LoginWindow(tk.Frame):
-    def __init__(self, tk_, master=None):
+    def __init__(self, master=None):
 
-        self.mw = tk_
-        self.mw.title('MeowMeow')
-        self.mw.geometry('350x250')
-        self.mw.resizable(1, 1)
-
-        tk.Frame.__init__(self, master=self.mw)
+        self.master = master
+        self.master.title('MeowMeow')
+        self.master.geometry('350x250')
+        self.master.resizable(1, 1)
+        self.frame = tk.Frame.__init__(self)
 
         self.grid()
         self.createWidgets()
 
     def go_to_registration(self, event):
         print 'Nein'
-        self.register_window = RegisterWindow.RegisterWindow(self.mw)
-        self.register_window.mainloop()
+        if hasattr(self, 'register_window') == False:
+            self.register_window = tk.Toplevel(self.master)
+            self.register_app = RegisterWindow.RegisterWindow(self.register_window)
+
 
     def change_text(self, event):
         self.register_lbl.configure(foreground='red')
