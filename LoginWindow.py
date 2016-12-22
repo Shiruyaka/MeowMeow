@@ -15,12 +15,20 @@ class LoginWindow(tk.Frame):
         self.grid()
         self.createWidgets()
 
+    def delete_attr(self):
+        #self.register_app.destroy()
+        self.register_window.destroy()
+        delattr(self, 'register_window')
+        delattr(self, 'register_app')
+        pass
+
     def go_to_registration(self, event):
         print 'Nein'
         if hasattr(self, 'register_window') == False:
             self.register_window = tk.Toplevel(self.master)
             self.register_app = RegisterWindow.RegisterWindow(self.register_window)
-
+            self.register_window.protocol('WM_DELETE_WINDOW', self.delete_attr)
+        pass
 
     def change_text(self, event):
         self.register_lbl.configure(foreground='red')
