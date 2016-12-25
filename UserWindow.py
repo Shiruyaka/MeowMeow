@@ -1,29 +1,44 @@
 import Tkinter as tk
 import ttk
+import Utils
 
 class ToggledFrame(tk.Frame):
     def __init__(self, master = None, title ='', row = 0):
+
         self.master = master
-        self.general_frame = tk.Frame(master = self.master)
-        self.general_frame.grid(row = row, sticky = tk.N + tk.S + tk.E + tk.W)
+
+        tk.Frame.__init__(self, master = self.master)
+
+        self.rowconfigure(0, weight=1)
+        self.rowconfigure(1, weight=1)
+        self.columnconfigure(0, weight=1)
+        self.columnconfigure(1, weight=1)
+
+        self.grid(sticky = tk.N + tk.W + tk.S + tk.E, row = row, column = 0)
+
         self.show = tk.BooleanVar(False)
 
         self.create_widgets(title)
 
     def create_widgets(self, title):
-        self.lst_name_label = tk.Label(master = self.general_frame, text= title)
-        self.lst_name_label.grid(row = 0, column = 0)
-        self.toggle_btn = tk.Checkbutton(master=self.general_frame, variable=self.show, command=self.toggle)
-        self.toggle_btn.grid(row = 0, column = 1)
+        self.lst_name_label = tk.Label(master = self, text= title)
+        self.lst_name_label.grid(row = 0, column = 0, sticky = tk.N + tk.W + tk.S + tk.E)
 
-        self.sub_frame = tk.Frame(master=self.general_frame)
+        self.toggle_btn = tk.Checkbutton(master=self, variable=self.show, command=self.toggle)
+        self.toggle_btn.grid(row = 0, column = 1, sticky = tk.N + tk.W + tk.S + tk.E)
+
+        self.sub_frame = tk.Frame(master=self)
+
+        self.sub_frame.rowconfigure(0, weight=1)
+        self.sub_frame.columnconfigure(0, weight=1)
+
         self.item_listbox = tk.Listbox(master=self.sub_frame)
 
 
     def toggle(self):
         if(self.show.get()):
-            self.sub_frame.grid(sticky = tk.N + tk.S + tk.E + tk.W)
-            self.item_listbox.grid(sticky = tk.N + tk.S + tk.E + tk.W)
+            self.sub_frame.grid(sticky = tk.N + tk.W + tk.S + tk.E)
+            self.item_listbox.grid(sticky = tk.W + tk.E + tk.S + tk.N)
         else:
             self.item_listbox.grid_forget()
             self.sub_frame.grid_forget()
@@ -38,13 +53,17 @@ class UserWindow(tk.Frame):
         self.master.geometry('350x450')
         self.master.resizable(0, 0)
 
-        tk.Frame.__init__(self, master=self.master)
+        tk.Frame.__init__(self, master=self.master, bg = Utils.COLOR_OF_WINDOW)
         self.grid()
 
         self.create_widget()
 
     def show_about_window(self):
         print 'About'
+
+    def set_scrollregion(self, event):
+        self.canvas.configure(scrollregion=self.canvas.bbox('all'))
+    #ef resize_rooms_frame(self, event):
 
     def create_widget(self):
         top = self.winfo_toplevel()
@@ -62,19 +81,23 @@ class UserWindow(tk.Frame):
 
         self.file_menu.add_command(label='About', command=self.show_about_window)
 
-        self.owned_rooms = ToggledFrame(self.master, title='Your rooms')
-        self.friendly_rooms = ToggledFrame(self.master, title ='Friendly rooms', row = 1)
 
-      #  self.owned_rooms.grid()
+        self.canvas = tk.Canvas(self.master, borderwidth=0, background=Utils.COLOR_OF_WINDOW)
+        self.vrt_scrollbar = tk.Scrollbar(self.master, orient='vertical', command=self.canvas.yview)
+        self.canvas.config(yscrollcommand= self.vrt_scrollbar.set)
+        self.canvas.grid(column = 0, row = 0, sticky = tk.N + tk.S + tk.W + tk.E)
+        self.vrt_scrollbar.grid(sticky = tk.N + tk.S, column = 1, row = 0)
+
+        self.rooms_frame = tk.Frame(self.canvas)
+
+        self.rooms_frame.columnconfigure(0, weight = 1)
+        self.rooms_frame.columnconfigure(1, weight = 1)
+        self.canvas.create_window((0, 0), window=self.rooms_frame, anchor=tk.N + tk.W, width = 350, tags ='self.rooms_frame')
+        self.rooms_frame.bind('<Configure>', self.set_scrollregion)
 
 
-        #self.tree_top = tk.Toplevel(self.master)
-        #self.tree = ttk.Treeview(self.master, selectmode="extended")
-        #ysb = ttk.Scrollbar(self.master, command=self.tree.yview, orient=tk.VERTICAL)
-        #self.tree.configure(yscrollcommand = ysb)
+        self.owned_rooms = ToggledFrame(self.rooms_frame, title='Your rooms', row = 0)
+        self.friendly_rooms = ToggledFrame(self.rooms_frame, title ='Friendly rooms', row = 1)
+        self.friends = ToggledFrame(self.rooms_frame, title='Friends', row = 2)
 
-        #tree.pack(expand=tk.YES, fill=tk.BOTH)
-        #id2 = self.tree.insert("", 1, "dir2", text="Dir 2")
-        #self.tree.insert(id2, "end", "dir 2", text="sub dir 2", values=("2A", "2B"))
 
-        #self.tree.grid(sticky = tk.N + tk.W + tk.E + tk.S, row = 0)
