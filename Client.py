@@ -16,7 +16,9 @@ class Client():
         pub_key.lstrip()
         pub_key.rstrip()
 
-        key_id = pub_key[-64:].replace('\n', '')
+        print pub_key
+        key_id = pub_key[-8:].replace('\n', '')
+        print key_id
         timestamp = int(time.time())
 
 
