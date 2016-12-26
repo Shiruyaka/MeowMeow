@@ -47,7 +47,7 @@ class ToggledFrame(tk.Frame):
 
 
 class UserWindow(tk.Frame):
-    def __init__(self, master=None):
+    def __init__(self, client, master=None):
         self.master = master
         self.master.title('MeowMeow')
         self.master.geometry('350x450')
@@ -57,6 +57,8 @@ class UserWindow(tk.Frame):
         self.grid()
 
         self.create_widget()
+
+        self.client = client
 
     def show_about_window(self):
         print 'About'
