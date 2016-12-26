@@ -2,6 +2,7 @@
 import Tkinter as tk
 import RegisterWindow
 import UserWindow
+import Database
 import Utils
 
 
@@ -13,19 +14,18 @@ class LoginWindow(tk.Frame):
         self.master.geometry('350x250')
         self.master.resizable(1, 1)
         self.frame = tk.Frame.__init__(self)
-
+        self.db = Database.Database()
         self.grid()
         self.create_widgets()
 
     def delete_attr(self):
-        #self.register_app.destroy()
         self.register_window.destroy()
         delattr(self, 'register_window')
         delattr(self, 'register_app')
         pass
 
     def go_to_registration(self, event):
-        print 'Nein'
+
         if hasattr(self, 'register_window') == False:
             self.register_window = tk.Toplevel(self.master)
             self.register_app = RegisterWindow.RegisterWindow(self.register_window)
@@ -34,10 +34,11 @@ class LoginWindow(tk.Frame):
         pass
 
     def go_to_user_window(self, event):
-        print self.login_entry.get() + ' ' + self.password_entry.get()
-        #verify account
-        app =  UserWindow.UserWindow(self.master)
-        self.destroy()
+        auth = self.db.verify(self.login_entry.get(), self.password_entry.get())
+
+        if auth == True:
+            app =  UserWindow.UserWindow(self.master)
+            self.destroy()
 
 
 
