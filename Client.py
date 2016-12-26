@@ -23,5 +23,5 @@ class Client():
 
 
 
-cl = Client()
-cl.generate_new_pair_key()
+#cl = Client()
+#cl.generate_new_pair_key()

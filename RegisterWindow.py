@@ -33,13 +33,13 @@ class RegisterWindow(tk.Frame):
         self.passwd_lbl = tk.Label(self, text='Password')
         self.passwd_lbl.grid(column=0, row=2)
 
-        self.passwd_entry = tk.Entry(self)
+        self.passwd_entry = tk.Entry(self, show='*')
         self.passwd_entry.grid(column=0, row=3)
 
         self.repeat_passwd_lbl = tk.Label(self, text='Repeat password')
         self.repeat_passwd_lbl.grid(column=0, row=4)
 
-        self.repeat_passwd_entry = tk.Entry(self)
+        self.repeat_passwd_entry = tk.Entry(self, show='*')
         self.repeat_passwd_entry.grid(column=0, row=5)
 
         self.first_name = tk.Label(self, text='First Name*')
@@ -74,4 +74,3 @@ class RegisterWindow(tk.Frame):
 
     def validate_data(self):
         pass
-

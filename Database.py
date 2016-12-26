@@ -44,7 +44,7 @@ class Database():
 
     def get_user_info(self, idUsr):
         cursor = self.connector.cursor()
-        cursor.execute('CALL GetUserInfo(%d)',(idUsr,), True)
+        cursor.execute('CALL GetUserInfo(%s)',(idUsr,), True)
         result = cursor.fetchall()
         self.connector.commit()
         cursor.close()
@@ -53,4 +53,4 @@ class Database():
 
 db1 = Database()
 
-db1.get_user_info(1)
+#db1.get_user_info(1)

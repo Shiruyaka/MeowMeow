@@ -39,7 +39,7 @@ class LoginWindow(tk.Frame):
 
         if id_usr != 0:
             client = Client.Client()
-            app =  UserWindow.UserWindow(self.master)
+            app =  UserWindow.UserWindow(client, self.master)
             self.destroy()
 
 
