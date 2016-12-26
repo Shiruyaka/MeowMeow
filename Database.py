@@ -36,11 +36,21 @@ class Database():
 
     def verify(self, Nick, Password):
         cursor = self.connector.cursor()
-        cursor.execute('SELECT Authentication(%s, %s)',(Nick, str(hashlib.sha1(Password).hexdigest())))
+        cursor.execute('SELECT Authentication_int(%s, %s)',(Nick, str(hashlib.sha1(Password).hexdigest())))
         result = cursor.fetchall()
         self.connector.commit()
         cursor.close()
         return result[0][0]
 
+    def get_user_info(self, idUsr):
+        cursor = self.connector.cursor()
+        cursor.execute('CALL GetUserInfo(%d)',(idUsr,), True)
+        result = cursor.fetchall()
+        self.connector.commit()
+        cursor.close()
+
+        print result
+
 db1 = Database()
-print db1.verify('sasandra30', 'cos')
+
+db1.get_user_info(1)

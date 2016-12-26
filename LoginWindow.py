@@ -3,6 +3,7 @@ import Tkinter as tk
 import RegisterWindow
 import UserWindow
 import Database
+import Client
 import Utils
 
 
@@ -34,9 +35,10 @@ class LoginWindow(tk.Frame):
         pass
 
     def go_to_user_window(self, event):
-        auth = self.db.verify(self.login_entry.get(), self.password_entry.get())
+        id_usr = self.db.verify(self.login_entry.get(), self.password_entry.get())
 
-        if auth == True:
+        if id_usr != 0:
+            client = Client.Client()
             app =  UserWindow.UserWindow(self.master)
             self.destroy()
 
