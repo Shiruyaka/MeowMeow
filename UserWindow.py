@@ -65,7 +65,7 @@ class UserWindow(tk.Frame):
 
     def set_scrollregion(self, event):
         self.canvas.configure(scrollregion=self.canvas.bbox('all'))
-    #ef resize_rooms_frame(self, event):
+
 
     def create_widget(self):
         top = self.winfo_toplevel()

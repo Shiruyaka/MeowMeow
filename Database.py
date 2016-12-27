@@ -3,10 +3,6 @@
 import mysql.connector
 import hashlib
 
-
-#class SingletonDatabase():
-#    def __init__(self):
-
 class Database():
 
     __shared_state = {}
@@ -42,15 +38,29 @@ class Database():
         cursor.close()
         return result[0][0]
 
-    def get_user_info(self, idUsr):
+    def get_user_info(self, IdUsr):
+        person_data = None
+
         cursor = self.connector.cursor()
-        cursor.execute('CALL GetUserInfo(%s)',(idUsr,), True)
-        result = cursor.fetchall()
+        cursor.callproc('GetUserInfo',[IdUsr])
+
+        for i in cursor.stored_results():
+            person_data = i.fetchall()[0]
+
         self.connector.commit()
         cursor.close()
 
-        print result
+        return person_data
+
+    def check_nickname(self, Nick):
+        cursor = self.connector.cursor()
+        cursor.execute('SELECT CheckNick(%s)', (Nick, ))
+        result  = cursor.fetchall()
+        self.connector.commit()
+        cursor.close()
+
+        return result[0][0]
+
 
 db1 = Database()
-
-#db1.get_user_info(1)
+db1.check_nickname('Ola')

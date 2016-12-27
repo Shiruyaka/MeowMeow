@@ -2,7 +2,7 @@
 
 from Crypto.PublicKey import RSA
 from Crypto import Random
-import time
+from time import gmtime, strftime
 import Database
 
 class Client():
@@ -17,11 +17,10 @@ class Client():
         pub_key_val = pair_key.publickey().exportKey(format='PEM')
         pub_key_id = pub_key_val.split('-----')[2].lstrip().rstrip()
         pub_key_id = pub_key_id[-8:].replace('\n', '')
-        timestamp = int(time.time())
-
-        self.db.add_key(pub_key_id, self.id, pub_key_val, timestamp)
-
+        data = strftime("%Y-%m-%d %H:%M:%S", gmtime())
+        self.db.add_key(pub_key_id, self.id, pub_key_val, data)
 
 
-#cl = Client()
-#cl.generate_new_pair_key()
+
+cl = Client()
+cl.generate_new_pair_key()
