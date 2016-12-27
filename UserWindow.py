@@ -3,7 +3,7 @@ import ttk
 import Utils
 
 class ToggledFrame(tk.Frame):
-    def __init__(self, master = None, title ='', row = 0):
+    def __init__(self, master = None, title =''):
 
         self.master = master
 
@@ -12,22 +12,23 @@ class ToggledFrame(tk.Frame):
         self.rowconfigure(0, weight=1)
         self.rowconfigure(1, weight=1)
         self.columnconfigure(0, weight=1)
-        self.columnconfigure(1, weight=1)
 
-        self.grid(sticky = tk.N + tk.W + tk.S + tk.E, row = row, column = 0)
+        self.grid(sticky = tk.N + tk.W + tk.S + tk.E, column = 0)
 
-        self.show = tk.BooleanVar(False)
-
+        #self.show = tk.BooleanVar(False)
+        self.show = False
         self.create_widgets(title)
 
     def create_widgets(self, title):
-        self.lst_name_label = tk.Label(master = self, text= title)
-        self.lst_name_label.grid(row = 0, column = 0, sticky = tk.N + tk.W + tk.S + tk.E)
+        #self.lst_name_label = tk.Label(master = self, text= title)
+        #self.lst_name_label.grid(row = 0, column = 0, sticky = tk.N + tk.W + tk.S + tk.E)
 
-        self.toggle_btn = tk.Checkbutton(master=self, variable=self.show, command=self.toggle)
-        self.toggle_btn.grid(row = 0, column = 1, sticky = tk.N + tk.W + tk.S + tk.E)
-
-        self.sub_frame = tk.Frame(master=self)
+        #self.toggle_btn = tk.Checkbutton(master=self, variable=self.show, command=self.toggle)
+        #self.toggle_btn.grid(row = 0, column = 1, sticky = tk.N + tk.W + tk.S + tk.E)
+        self.button = tk.Button(master=self, text = title)
+        self.button.bind('<Button-1>', self.toggle)
+        self.button.grid(sticky = tk.N + tk.W + tk.S + tk.E)
+        self.sub_frame = tk.Frame(master=self, bg='white')
 
         self.sub_frame.rowconfigure(0, weight=1)
         self.sub_frame.columnconfigure(0, weight=1)
@@ -35,8 +36,9 @@ class ToggledFrame(tk.Frame):
         self.item_listbox = tk.Listbox(master=self.sub_frame)
 
 
-    def toggle(self):
-        if(self.show.get()):
+    def toggle(self, event):
+        self.show = not self.show
+        if(self.show == True):
             self.sub_frame.grid(sticky = tk.N + tk.W + tk.S + tk.E)
             self.item_listbox.grid(sticky = tk.W + tk.E + tk.S + tk.N)
         else:
@@ -94,12 +96,12 @@ class UserWindow(tk.Frame):
 
         self.rooms_frame.columnconfigure(0, weight = 1)
         self.rooms_frame.columnconfigure(1, weight = 1)
-        self.canvas.create_window((0, 0), window=self.rooms_frame, anchor=tk.N + tk.W, width = 350, tags ='self.rooms_frame')
+        self.canvas.create_window((0, 0), window=self.rooms_frame, anchor='center', width = 350, tags ='self.rooms_frame')
         self.rooms_frame.bind('<Configure>', self.set_scrollregion)
 
 
-        self.owned_rooms = ToggledFrame(self.rooms_frame, title='Your rooms', row = 0)
-        self.friendly_rooms = ToggledFrame(self.rooms_frame, title ='Friendly rooms', row = 1)
-        self.friends = ToggledFrame(self.rooms_frame, title='Friends', row = 2)
+        self.owned_rooms = ToggledFrame(self.rooms_frame, title='Your rooms')
+        self.friendly_rooms = ToggledFrame(self.rooms_frame, title ='Friendly rooms')
+        self.friends = ToggledFrame(self.rooms_frame, title='Friends')
 
 

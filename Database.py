@@ -60,7 +60,3 @@ class Database():
         cursor.close()
 
         return result[0][0]
-
-
-db1 = Database()
-db1.check_nickname('Ola')
