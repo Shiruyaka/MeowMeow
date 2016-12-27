@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import Tkinter as tk
+import Database
 
 
 class RegisterWindow(tk.Frame):
@@ -9,6 +10,8 @@ class RegisterWindow(tk.Frame):
         self.master.title('Create new account')
         self.master.geometry('350x250')
         self.master.resizable(0, 0)
+
+        self.db = Database.Database()
 
         tk.Frame.__init__(self, master=self.master)
 
@@ -69,28 +72,28 @@ class RegisterWindow(tk.Frame):
 
     def save_in_database(self, event):
         print('close')
-        self.validate_data()
+        if not self.validate_data():
+            # funkcja zapisujca do bazy
+            self.master.destroy()
 
-        # funkcja zapisujca do bazy
-        self.master.destroy()
 
     def validate_data(self):
-
-        # jeszcze walidacja loginu
 
         show_label = False
 
         if self.user_entry == '' or self.passwd_entry == '' or self.repeat_passwd_entry == '':
+            error_label = tk.Label(self, text="Obligatory fileds can't be empty!", foreground='red')
             show_label = True
         elif self.passwd_entry != self.repeat_passwd_entry:
+            error_label = tk.Label(self, text="Passwords are different!", foreground='red')
             show_label = True
-        else:
-            show_label = False
-
-        self.error_label = tk.Label(self, text="Obligatory fileds can't be empty!", foreground='red')
+        elif self.db.check_nickname(self.user_entry) == 0:
+            error_label = tk.Label(self, text="Nickname is taken!", foreground='red')
+            show_label = True
 
         if show_label:
-            self.error_label.grid(columnspan=2, column=0)
+            error_label.grid(columnspan=2, column=0)
         else:
-            self.error_label.grid_forget()
+            error_label.grid_forget()
 
+        return show_label
