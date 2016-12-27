@@ -11,7 +11,7 @@ class RegisterWindow(tk.Frame):
         self.master.geometry('350x250')
         self.master.resizable(0, 0)
 
-        self.db = Database.Database()
+        # self.db = Database.Database()
 
         tk.Frame.__init__(self, master=self.master)
 
@@ -23,6 +23,8 @@ class RegisterWindow(tk.Frame):
         top = self.winfo_toplevel()
         top.rowconfigure(0, weight=1)
         top.columnconfigure(0, weight=1)
+
+        self.error_label = tk.Label(self, text="", foreground='red')
 
         self.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight=1)
@@ -74,26 +76,34 @@ class RegisterWindow(tk.Frame):
         print('close')
         if not self.validate_data():
             # funkcja zapisujca do bazy
-            self.master.destroy()
+            # self.master.destroy()
+            print('ok')
 
 
     def validate_data(self):
 
         show_label = False
 
-        if self.user_entry == '' or self.passwd_entry == '' or self.repeat_passwd_entry == '':
-            error_label = tk.Label(self, text="Obligatory fileds can't be empty!", foreground='red')
-            show_label = True
-        elif self.passwd_entry != self.repeat_passwd_entry:
-            error_label = tk.Label(self, text="Passwords are different!", foreground='red')
-            show_label = True
-        elif self.db.check_nickname(self.user_entry) == 0:
-            error_label = tk.Label(self, text="Nickname is taken!", foreground='red')
+        print(self.passwd_entry)
+        print(self.repeat_passwd_entry)
+
+        if self.user_entry.get() == '' or self.passwd_entry.get() == '' or self.repeat_passwd_entry.get() == '':
+            self.error_label.config(text="Obligatory fileds can't be empty!")
             show_label = True
 
+        elif self.passwd_entry.get() != self.repeat_passwd_entry.get():
+            self.error_label.config(text="Passwords are different!")
+            show_label = True
+
+        elif self.db.check_nickname(self.user_entry) == 1:
+            self.error_label.config(text="Nickname is taken!")
+            show_label = True
+
+        print(show_label)
+
         if show_label:
-            error_label.grid(columnspan=2, column=0)
+            self.error_label.grid(columnspan=2, column=0)
         else:
-            error_label.grid_forget()
+            self.error_label.grid_forget()
 
         return show_label
