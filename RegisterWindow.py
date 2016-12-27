@@ -69,8 +69,28 @@ class RegisterWindow(tk.Frame):
 
     def save_in_database(self, event):
         print('close')
+        self.validate_data()
+
+        # funkcja zapisujca do bazy
         self.master.destroy()
 
-
     def validate_data(self):
-        pass
+
+        # jeszcze walidacja loginu
+
+        show_label = False
+
+        if self.user_entry == '' or self.passwd_entry == '' or self.repeat_passwd_entry == '':
+            show_label = True
+        elif self.passwd_entry != self.repeat_passwd_entry:
+            show_label = True
+        else:
+            show_label = False
+
+        self.error_label = tk.Label(self, text="Obligatory fileds can't be empty!", foreground='red')
+
+        if show_label:
+            self.error_label.grid(columnspan=2, column=0)
+        else:
+            self.error_label.grid_forget()
+
