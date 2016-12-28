@@ -1,5 +1,5 @@
 import Tkinter as tk
-import ttk
+import ttk as t
 import Utils
 
 class ToggledFrame(tk.Frame):
@@ -49,18 +49,21 @@ class ToggledFrame(tk.Frame):
 
 
 class UserWindow(tk.Frame):
-    def __init__(self, client, master=None):
+    def __init__(self, master=None):
         self.master = master
         self.master.title('MeowMeow')
         self.master.geometry('350x450')
-        self.master.resizable(0, 0)
+        #self.master.resizable(1, 1)
 
         tk.Frame.__init__(self, master=self.master, bg = Utils.COLOR_OF_WINDOW)
+        #self.columnconfigure(0, weight=1)
+        #self.columnconfigure(1, weight=1)
+        self.rowconfigure(0, weight=1)
         self.grid()
 
         self.create_widget()
 
-        self.client = client
+        #self.client = client
 
     def show_about_window(self):
         print 'About'
@@ -94,10 +97,11 @@ class UserWindow(tk.Frame):
 
         self.rooms_frame = tk.Frame(self.canvas)
 
-        self.rooms_frame.columnconfigure(0, weight = 1)
-        self.rooms_frame.columnconfigure(1, weight = 1)
-        self.canvas.create_window((0, 0), window=self.rooms_frame, anchor='center', width = 350, tags ='self.rooms_frame')
+       # self.rooms_frame.columnconfigure(0, weight = 1)
+        #self.rooms_frame.columnconfigure(1, weight = 1)
+        self.canvas.create_window((0, 0), window=self.rooms_frame, anchor='nw', width = 350, tags ='self.rooms_frame')
         self.rooms_frame.bind('<Configure>', self.set_scrollregion)
+        self.rooms_frame.grid(sticky = tk.N + tk.S + tk.W + tk.E)
 
 
         self.owned_rooms = ToggledFrame(self.rooms_frame, title='Your rooms')
@@ -105,3 +109,24 @@ class UserWindow(tk.Frame):
         self.friends = ToggledFrame(self.rooms_frame, title='Friends')
 
 
+root = tk.Tk()
+
+tree = t.Treeview(root, columns = ['Online'])
+tree.heading('#0', text = 'Room')
+tree.heading("Online", text="Online")
+tree.column('Online', width=50)
+#tree["columns"] = ('Online')
+#tree.column("Online", width=175)
+
+tree.insert("", 0, text="Line 1", values=("1A"))
+
+id2 = tree.insert("", 1, "dir2", text="Dir 2")
+tree.insert(id2, "end", "dir 2", text="sub dir 2", values=("2A"))
+#tree.insert(id2, 'end', 'dir2', text='sth', values=('2B'))
+tree.insert(id2, 1, 'sth', text = 'sth2', values='2B')
+##alternatively:
+tree.insert("", 1, "dir3", text="Dir 3")
+tree.insert("dir3", 2, text=" sub dir 3", values=("3A"))
+
+tree.pack()
+root.mainloop()
