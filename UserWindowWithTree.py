@@ -11,10 +11,12 @@ class UserWindowWithTree(tk.Frame):
         self.master.geometry('350x450')
         self.master.resizable(0,0)
 
-        tk.Frame.__init__(self, master = self.master, bg = 'blue')
+        tk.Frame.__init__(self, master = self.master)
         self.grid(sticky = 'nsew')
         self.columnconfigure(0, weight = 1)
+        self.columnconfigure(1, weight=1)
         self.rowconfigure(0, weight = 1)
+        self.rowconfigure(1, weight=1)
         self.create_widgets()
 
     def create_menu(self):
@@ -34,7 +36,7 @@ class UserWindowWithTree(tk.Frame):
 
     def create_rooms_tree(self):
 
-        self.rooms_tree = ttk.Treeview(master=self.master, columns=['Online'])
+        self.rooms_tree = ttk.Treeview(master=self.master, columns=['Online'], height = 20)
         self.rooms_tree.heading('#0', text='Room')
         self.rooms_tree.heading("Online", text="Online")
         self.rooms_tree.column('Online', width=50)
@@ -64,12 +66,15 @@ class UserWindowWithTree(tk.Frame):
         self.tree_scrollbar = ttk.Scrollbar(master=self.master, orient='vertical')  # , command=self.rooms_tree.yview)
         self.tree_scrollbar.configure(command=self.rooms_tree.yview)
         self.rooms_tree.configure(yscrollcommand=self.tree_scrollbar.set)
-        self.tree_scrollbar.grid(sticky=tk.N + tk.S, row=0, column=1)
+        self.tree_scrollbar.grid(sticky=tk.N + tk.S, row=1, column=1)
 
-        self.rooms_tree.grid(row=0, column=0, sticky=tk.N + tk.S + tk.W + tk.E)
+        self.rooms_tree.grid(row=1, column=0, sticky=tk.N + tk.S + tk.W + tk.E)
 
     def create_widgets(self):
         self.create_menu()
+
+        self.usr_info_lbl = tk.Label(master=self.master, text='Zalogowany jako Shiruyaka')
+        self.usr_info_lbl.grid(row = 0, column = 0, columnspan = 2)
         self.create_rooms_tree()
 
 
