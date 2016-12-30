@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import Tkinter as tk
+import socket
 import Database
 
 
@@ -11,7 +12,13 @@ class RegisterWindow(tk.Frame):
         self.master.geometry('350x250')
         self.master.resizable(0, 0)
 
-        # self.db = Database.Database()
+        try:
+            self.server_conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.server_conn.connect(('localhost', 5000))
+        except:
+            print 'Connection problem'
+            exit(0)
+
 
         tk.Frame.__init__(self, master=self.master)
 
@@ -84,8 +91,8 @@ class RegisterWindow(tk.Frame):
 
         show_label = False
 
-        print(self.passwd_entry)
-        print(self.repeat_passwd_entry)
+        #print(self.passwd_entry)
+        #print(self.repeat_passwd_entry)
 
         if self.user_entry.get() == '' or self.passwd_entry.get() == '' or self.repeat_passwd_entry.get() == '':
             self.error_label.config(text="Obligatory fileds can't be empty!")
@@ -95,11 +102,11 @@ class RegisterWindow(tk.Frame):
             self.error_label.config(text="Passwords are different!")
             show_label = True
 
-        elif self.db.check_nickname(self.user_entry) == 1:
-            self.error_label.config(text="Nickname is taken!")
-            show_label = True
+        #elif self.db.check_nickname(self.user_entry) == 1:
+        #    self.error_label.config(text="Nickname is taken!")
+        #    show_label = True
 
-        print(show_label)
+        #print(show_label)
 
         if show_label:
             self.error_label.grid(columnspan=2, column=0)
