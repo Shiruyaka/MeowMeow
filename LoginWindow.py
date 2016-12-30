@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import Tkinter as tk
 import RegisterWindow
-import UserWindow
+import UserWindowWithTree
 import Database
 import Client
 import Utils
@@ -39,7 +39,7 @@ class LoginWindow(tk.Frame):
 
         if id_usr != 0:
             client = Client.Client()
-            app =  UserWindow.UserWindow(client, self.master)
+            app =  UserWindowWithTree.UserWindowWithTree(self.master)
             self.destroy()
 
 

@@ -97,8 +97,7 @@ class UserWindow(tk.Frame):
 
         self.rooms_frame = tk.Frame(self.canvas)
 
-       # self.rooms_frame.columnconfigure(0, weight = 1)
-        #self.rooms_frame.columnconfigure(1, weight = 1)
+
         self.canvas.create_window((0, 0), window=self.rooms_frame, anchor='nw', width = 350, tags ='self.rooms_frame')
         self.rooms_frame.bind('<Configure>', self.set_scrollregion)
         self.rooms_frame.grid(sticky = tk.N + tk.S + tk.W + tk.E)
@@ -107,26 +106,3 @@ class UserWindow(tk.Frame):
         self.owned_rooms = ToggledFrame(self.rooms_frame, title='Your rooms')
         self.friendly_rooms = ToggledFrame(self.rooms_frame, title ='Friendly rooms')
         self.friends = ToggledFrame(self.rooms_frame, title='Friends')
-
-
-root = tk.Tk()
-
-tree = t.Treeview(root, columns = ['Online'])
-tree.heading('#0', text = 'Room')
-tree.heading("Online", text="Online")
-tree.column('Online', width=50)
-#tree["columns"] = ('Online')
-#tree.column("Online", width=175)
-
-tree.insert("", 0, text="Line 1", values=("1A"))
-
-id2 = tree.insert("", 1, "dir2", text="Dir 2")
-tree.insert(id2, "end", "dir 2", text="sub dir 2", values=("2A"))
-#tree.insert(id2, 'end', 'dir2', text='sth', values=('2B'))
-tree.insert(id2, 1, 'sth', text = 'sth2', values='2B')
-##alternatively:
-tree.insert("", 1, "dir3", text="Dir 3")
-tree.insert("dir3", 2, text=" sub dir 3", values=("3A"))
-
-tree.pack()
-root.mainloop()

@@ -43,25 +43,11 @@ class UserWindowWithTree(tk.Frame):
         self.rooms_tree.column('#0', width=285)
 
         self.rooms_tree.insert("", 1, Utils.TYPE_OF_ROOM[0], text=Utils.TYPE_OF_ROOM[0])
-        self.rooms_tree.insert(Utils.TYPE_OF_ROOM[0], 'end', text=" sub dir 3", values=("3A"))
-        self.rooms_tree.insert(Utils.TYPE_OF_ROOM[0], 'end', text=" sub dir 3", values=("3A"))
-        self.rooms_tree.insert(Utils.TYPE_OF_ROOM[0], 'end', text=" sub dir 3", values=("3A"))
-        self.rooms_tree.insert(Utils.TYPE_OF_ROOM[0], 'end', text=" sub dir 3", values=("3A"))
-        self.rooms_tree.insert(Utils.TYPE_OF_ROOM[0], 'end', text=" sub dir 3", values=("3A"))
-        self.rooms_tree.insert(Utils.TYPE_OF_ROOM[0], 'end', text=" sub dir 3", values=("3A"))
-        self.rooms_tree.insert(Utils.TYPE_OF_ROOM[0], 'end', text=" sub dir 3", values=("3A"))
-        self.rooms_tree.insert(Utils.TYPE_OF_ROOM[0], 'end', text=" sub dir 3", values=("3A"))
-        self.rooms_tree.insert(Utils.TYPE_OF_ROOM[0], 'end', text=" sub dir 3", values=("3A"))
-        self.rooms_tree.insert(Utils.TYPE_OF_ROOM[0], 'end', text=" sub dir 3", values=("3A"))
-        self.rooms_tree.insert(Utils.TYPE_OF_ROOM[0], 'end', text=" sub dir 3", values=("3A"))
-        self.rooms_tree.insert(Utils.TYPE_OF_ROOM[0], 'end', text=" sub dir 3", values=("3A"))
-
 
         self.rooms_tree.insert('', 2, Utils.TYPE_OF_ROOM[1], text=Utils.TYPE_OF_ROOM[1])
-        self.rooms_tree.insert(Utils.TYPE_OF_ROOM[1], 'end', text='K-POP', values=('2/31'))
 
         self.rooms_tree.insert('', 3, Utils.TYPE_OF_ROOM[2], text=Utils.TYPE_OF_ROOM[2])
-        self.rooms_tree.insert(Utils.TYPE_OF_ROOM[2], 'end', text='Olcia', values=('Offline'))
+
 
         self.tree_scrollbar = ttk.Scrollbar(master=self.master, orient='vertical')  # , command=self.rooms_tree.yview)
         self.tree_scrollbar.configure(command=self.rooms_tree.yview)
@@ -73,11 +59,11 @@ class UserWindowWithTree(tk.Frame):
     def create_widgets(self):
         self.create_menu()
 
-        self.usr_info_lbl = tk.Label(master=self.master, text='Zalogowany jako Shiruyaka')
+        self.usr_info_lbl = tk.Label(master=self.master, text='Zalogowany jako')
         self.usr_info_lbl.grid(row = 0, column = 0, columnspan = 2)
         self.create_rooms_tree()
 
 
-root = tk.Tk()
-app = UserWindowWithTree(root)
-root.mainloop()
+#root = tk.Tk()
+#app = UserWindowWithTree(root)
+#root.mainloop()
