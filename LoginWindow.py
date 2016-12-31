@@ -38,8 +38,8 @@ class LoginWindow(tk.Frame):
         id_usr = self.db.verify(self.login_entry.get(), self.password_entry.get())
 
         if id_usr != 0:
-            client = Client.Client()
-            app =  UserWindowWithTree.UserWindowWithTree(self.master)
+            client = Client.Client(self.login_entry.get(), self.password_entry.get())
+            app =  UserWindowWithTree.UserWindowWithTree(client, self.master)
             self.destroy()
 
 

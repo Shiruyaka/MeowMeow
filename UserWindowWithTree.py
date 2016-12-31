@@ -4,12 +4,14 @@ import Utils
 
 
 class UserWindowWithTree(tk.Frame):
-    def __init__(self, master=None):
+    def __init__(self, client, master=None):
 
         self.master = master
         self.master.title('MeowMeow')
         self.master.geometry('350x450')
         self.master.resizable(0,0)
+
+        self.client = client
 
         tk.Frame.__init__(self, master = self.master)
         self.grid(sticky = 'nsew')
@@ -59,7 +61,7 @@ class UserWindowWithTree(tk.Frame):
     def create_widgets(self):
         self.create_menu()
 
-        self.usr_info_lbl = tk.Label(master=self.master, text='Zalogowany jako')
+        self.usr_info_lbl = tk.Label(master=self.master, text='Zalogowany jako ' + self.client.login)
         self.usr_info_lbl.grid(row = 0, column = 0, columnspan = 2)
         self.create_rooms_tree()
 
