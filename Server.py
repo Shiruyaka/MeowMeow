@@ -2,6 +2,10 @@
 
 import socket
 import threading
+from Crypto.PublicKey import RSA
+from Crypto.Cipher import PKCS1_OAEP
+from Crypto.Cipher import AES
+import Utils
 
 class ClientThread(threading.Thread):
     def __init__(self, address, client):
@@ -10,9 +14,19 @@ class ClientThread(threading.Thread):
         self.client = client
         self.daemon = True
 
+    def decrypt(self, msg):
+        priv_key =  RSA.importKey(open('priv_key.pem', 'r'))
+        rsadecrypt = PKCS1_OAEP.new(priv_key)
+        content = msg.split('|')
+
+        sessionkey = rsadecrypt.decrypt(content[1])
+        aes = AES.new(sessionkey, AES.MODE_CBC, Utils.IV)
+        print aes.decrypt(content[2])
+        #rsadecrypt.decrypt()
     def run(self):
-        msg = self.client
+        msg = self.client.recv(8192)
         msg.rstrip('=')
+        self.decrypt(msg)
 
 
 
