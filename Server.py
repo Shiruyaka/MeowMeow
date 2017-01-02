@@ -11,8 +11,9 @@ class ClientThread(threading.Thread):
         self.daemon = True
 
     def run(self):
-        while 1:
-            a = 2 + 2
+        msg = self.client
+        msg.rstrip('=')
+
 
 
 class Server(object):

@@ -99,8 +99,10 @@ class RegisterWindow(tk.Frame):
             key_server_pub = RSA.importKey(open('pub_key.pem', 'r').read())
 
             msg = Utils.make_msg(args)
-            print Utils.pgp_enc_msg(key_server_pub,key,msg)
+            msg =  Utils.pgp_enc_msg(key_server_pub,key,msg)
+            msg.ljust(8192, '=')
 
+            self.server_conn.send(msg)
             # funkcja zapisujca do bazy
             # self.master.destroy()
             print('ok')
