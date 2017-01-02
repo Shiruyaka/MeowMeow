@@ -100,7 +100,7 @@ class RegisterWindow(tk.Frame):
 
             msg = Utils.make_msg(args)
             print Utils.pgp_enc_msg(key_server_pub,key,msg)
-            print 'cos'
+
             # funkcja zapisujca do bazy
             # self.master.destroy()
             print('ok')
