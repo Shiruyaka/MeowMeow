@@ -10,16 +10,16 @@ class Database():
     def __init__(self):
         self.__dict__ = self.__shared_state
         try:
-            self.connector = mysql.connector.connect(user='root', password='miau', host='localhost', database='MeowMeowDb', port='3306')
+            self.connector = mysql.connector.connect(user='root', password='#OlciaKocia01', host='localhost', database='MeowMeowDb', port='3306')
         except Exception as e:
             print 'Cos sie popsulo'
             exit()
 
     def add_user(self, Nick, FirstName, SecondName, Password):
 
-        pass_hash = hashlib.sha1(Password).hexdigest()
+        #pass_hash = hashlib.sha1(Password).hexdigest()
         cursor = self.connector.cursor()
-        cursor.callproc('Insert_NewUser', (Nick, FirstName, SecondName, str(pass_hash)))
+        cursor.callproc('Insert_NewUser', (Nick, FirstName, SecondName, Password))
         self.connector.commit()
         cursor.close()
 

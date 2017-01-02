@@ -1,11 +1,15 @@
 #!/usr/bin/env python
 import Tkinter as tk
 import socket
+from hashlib import sha1
+from Crypto.PublicKey import RSA
+import Utils
 import Database
 
 
 class RegisterWindow(tk.Frame):
     def __init__(self, master=None):
+
 
         self.master = master
         self.master.title('Create new account')
@@ -82,6 +86,20 @@ class RegisterWindow(tk.Frame):
     def save_in_database(self, event):
         print('close')
         if not self.validate_data():
+            data, key = Utils.generate_new_pair_key()
+            pubkey = key.publickey()
+
+            args = ['REG', ]
+            args.append(self.user_entry.get())
+            args.append(self.first_name_entry.get())
+            args.append(self.second_name_entry.get())
+            args.append(self.mail_entry.get())
+            args.append(sha1(self.passwd_entry.get()).hexdigest())
+
+            key_server_pub = RSA.importKey(open('pub_key.pem', 'r').read())
+
+            msg = Utils.make_msg(args)
+            print Utils.pgp_enc_msg(key_server_pub,key,msg)
             # funkcja zapisujca do bazy
             # self.master.destroy()
             print('ok')
@@ -91,20 +109,18 @@ class RegisterWindow(tk.Frame):
 
         show_label = False
 
-        #print(self.passwd_entry)
-        #print(self.repeat_passwd_entry)
-
         if self.user_entry.get() == '' or self.passwd_entry.get() == '' or self.repeat_passwd_entry.get() == '':
             self.error_label.config(text="Obligatory fileds can't be empty!")
             show_label = True
+
 
         elif self.passwd_entry.get() != self.repeat_passwd_entry.get():
             self.error_label.config(text="Passwords are different!")
             show_label = True
 
-        #elif self.db.check_nickname(self.user_entry) == 1:
-        #    self.error_label.config(text="Nickname is taken!")
-        #    show_label = True
+       # elif self.db.check_nickname(self.user_entry) == 1:
+       #     self.error_label.config(text="Nickname is taken!")
+       #     show_label = True
 
         #print(show_label)
 
