@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 
 from Crypto.PublicKey import RSA
+from Crypto.Signature import PKCS1_v1_5
 from Crypto import Random
-from Crypto.Cipher import PKCS1_OAEP
+from Crypto.Hash import SHA256
+from Crypto.Cipher import PKCS1_OAEP, AES
 from time import gmtime, strftime
-from Crypto.Cipher import AES
 from hashlib import sha1
+import base64
 
 COLOR_OF_WINDOW = '#99CCFF'
 TYPE_OF_ROOM = ['Your rooms', 'Rooms', 'Friends']
@@ -39,20 +41,56 @@ def pgp_enc_msg(key_dst, key_source, msg):
 
     rsaencrypt = PKCS1_OAEP.new(key_dst)
     session_key = Random.new().read(16)
-
     encrypted_sess_key = rsaencrypt.encrypt(session_key)
 
-    signHashAlg = PKCS1_OAEP.new(key_source)
-    hashMsg = sha1(msg).hexdigest()
-    hashMsg = signHashAlg.encrypt(hashMsg)
+    signer = PKCS1_v1_5.new(key_source)
 
-    cipher = msg + '|' + hashMsg
+    digest = SHA256.new()
+    digest.update(msg)
+
+    hashMsg = signer.sign(digest)
+
+
+    cipher = msg + ';' + hashMsg
     cipher = cipher.ljust(4096, '=')
 
     aes_alg = AES.new(session_key, AES.MODE_CBC, IV)
     mess_en = aes_alg.encrypt(cipher)
 
-    return id + '|' + mess_en
+    return base64.b64encode(id) + ';' + base64.b64encode(encrypted_sess_key) + ';' + base64.b64encode(mess_en)
+
+def pgp_dec_msg(key, msg):
+
+    msg.rstrip('=')
+    content = msg.split(';')
+
+    key_id = base64.b64decode(content[0])
+    print key_id
+
+    rsadecrypt = PKCS1_OAEP.new(RSA.importKey(open('priv_key.pem', 'r')))
+    sessionkey = rsadecrypt.decrypt(base64.b64decode(content[1]))
+    aes = AES.new(sessionkey, AES.MODE_CBC, IV)
+
+    msg_de = aes.decrypt(base64.b64decode(content[2])).split(';')
+    msg_de[1] = msg_de[1].rstrip('=')
+    client_key = msg_de[0].split('|')[-1]
+  #  print client_key + " cos"
+
+    veryfier = PKCS1_v1_5.new(RSA.importKey(client_key))
+    digest = SHA256.new()
+    digest.update(msg_de[0])
+
+    print veryfier.verify(digest, msg_de[1])
+
+    if veryfier.verify(digest, msg_de[1]):
+        print 'Valid'
+        msg_de = msg_de[0].split('|')
+    else:
+        print 'Invalid'
+        msg_de = None
+
+    return msg_de
+
 
 def make_msg(msg_content):
     msg = ''
@@ -62,24 +100,3 @@ def make_msg(msg_content):
     msg = msg + msg_content[-1]
 
     return msg
-
-#data, key= generate_new_pair_key()
-#print data
-#punkey = key.publickey().exportKey(format='PEM')
-#print punkey, data
-
-#file = open('pub_key.pem', 'r')
-#key_pub = RSA.importKey(file.read())
-
-#file2 = open('priv_key.pem', 'r')
-#key_priv = RSA.importKey(file2.read())
-
-#print make_msg(('Lelak', 'cos', 'Teodezja', '', '', punkey, data))
-
-#msg = 'Lelak|cos|Teodezja|||' + key_pub.exportKey(format='PEM') + strftime("%Y-%m-%d %H:%M:%S", gmtime())
-
-#print len(msg)
-#print len(pgp_enc_msg(key_pub, key_priv, msg))
-
-#print key.exportKey(format='PEM')
-#print get_key_id(key)

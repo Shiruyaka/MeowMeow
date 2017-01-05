@@ -1,4 +1,6 @@
+# -*- coding: utf-8 -*-
 #!/usr/bin/env python
+
 import Tkinter as tk
 import socket
 from hashlib import sha1
@@ -87,7 +89,8 @@ class RegisterWindow(tk.Frame):
         print('close')
         if not self.validate_data():
             data, key = Utils.generate_new_pair_key()
-            pubkey = key.publickey()
+            pubkey = key.publickey().exportKey(format='PEM')
+            print pubkey
 
             args = ['REG', ]
             args.append(self.user_entry.get())
@@ -95,6 +98,7 @@ class RegisterWindow(tk.Frame):
             args.append(self.second_name_entry.get())
             args.append(self.mail_entry.get())
             args.append(sha1(self.passwd_entry.get()).hexdigest())
+            args.append(pubkey)
 
             key_server_pub = RSA.importKey(open('pub_key.pem', 'r').read())
 
