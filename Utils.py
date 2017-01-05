@@ -49,9 +49,9 @@ def pgp_enc_msg(key_dst, key_source, msg):
     digest.update(msg)
 
     hashMsg = signer.sign(digest)
+    print len(base64.b64encode(hashMsg))
 
-
-    cipher = msg + ';' + hashMsg
+    cipher = msg + ';' + base64.b64encode(hashMsg) + ';'
     cipher = cipher.ljust(4096, '=')
 
     aes_alg = AES.new(session_key, AES.MODE_CBC, IV)
@@ -72,9 +72,13 @@ def pgp_dec_msg(key, msg):
     aes = AES.new(sessionkey, AES.MODE_CBC, IV)
 
     msg_de = aes.decrypt(base64.b64decode(content[2])).split(';')
-    msg_de[1] = msg_de[1].rstrip('=')
+    msg_de.pop()
+    print msg_de
+    print len(msg_de[1].rstrip('='))
+    msg_de[1] = base64.b64decode(msg_de[1])
     client_key = msg_de[0].split('|')[-1]
   #  print client_key + " cos"
+    print msg_de
 
     veryfier = PKCS1_v1_5.new(RSA.importKey(client_key))
     digest = SHA256.new()

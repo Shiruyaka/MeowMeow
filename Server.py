@@ -15,21 +15,10 @@ class ClientThread(threading.Thread):
         self.client = client
         self.daemon = True
 
-    def decrypt(self, msg):
-        Utils.pgp_dec_msg('key', msg)
-#        priv_key =  RSA.importKey(open('priv_key.pem', 'r'))
- #       rsadecrypt = PKCS1_OAEP.new(priv_key)
-  #      content = msg.split(';')
-   #     sessionkey = rsadecrypt.decrypt(base64.b64decode(content[1]))
-    #    aes = AES.new(sessionkey, AES.MODE_CBC, Utils.IV)
-     #   msg_de = aes.decrypt(base64.b64decode(content[2])).split(';')
-      #  msg_de[-1] = msg_de[-1].rstrip('=')
-       # print msg_de
-        #rsadecrypt.decrypt()
     def run(self):
         msg = self.client.recv(8192)
-        self.decrypt(msg)
-
+        content = Utils.pgp_dec_msg('key', msg) ## choosing key need
+        print content
 
 
 class Server(object):
