@@ -49,7 +49,7 @@ def pgp_enc_msg(key_dst, key_source, msg):
     digest.update(msg)
 
     hashMsg = signer.sign(digest)
-    print len(base64.b64encode(hashMsg))
+   # print len(base64.b64encode(hashMsg))
 
     cipher = msg + ';' + base64.b64encode(hashMsg) + ';'
     cipher = cipher.ljust(4096, '=')
@@ -65,7 +65,7 @@ def pgp_dec_msg(key, msg):
     content = msg.split(';')
 
     key_id = base64.b64decode(content[0])
-    print key_id
+  #  print key_id
 
     rsadecrypt = PKCS1_OAEP.new(RSA.importKey(open('priv_key.pem', 'r')))
     sessionkey = rsadecrypt.decrypt(base64.b64decode(content[1]))
@@ -73,18 +73,18 @@ def pgp_dec_msg(key, msg):
 
     msg_de = aes.decrypt(base64.b64decode(content[2])).split(';')
     msg_de.pop()
-    print msg_de
-    print len(msg_de[1].rstrip('='))
+  #  print msg_de
+  #  print len(msg_de[1].rstrip('='))
     msg_de[1] = base64.b64decode(msg_de[1])
     client_key = msg_de[0].split('|')[-1]
   #  print client_key + " cos"
-    print msg_de
+  #  print msg_de
 
     veryfier = PKCS1_v1_5.new(RSA.importKey(client_key))
     digest = SHA256.new()
     digest.update(msg_de[0])
 
-    print veryfier.verify(digest, msg_de[1])
+    #print veryfier.verify(digest, msg_de[1])
 
     if veryfier.verify(digest, msg_de[1]):
         print 'Valid'

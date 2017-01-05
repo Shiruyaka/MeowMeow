@@ -107,9 +107,8 @@ class RegisterWindow(tk.Frame):
             msg.ljust(8192, '=')
 
             self.server_conn.send(msg)
-            # funkcja zapisujca do bazy
-            # self.master.destroy()
-            print('ok')
+            respond = self.server_conn.recv(2048)
+
 
 
     def validate_data(self):
