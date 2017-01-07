@@ -106,3 +106,28 @@ def make_msg(msg_content):
     msg = msg + msg_content[-1]
 
     return msg
+
+
+class OwnerTrust:
+    ultimate_trust = 1
+    always_trusted = 2
+    usually_trusted = 3
+    usually_not_trusted = 4
+    unknown = 5
+    undefined = 6
+
+
+class SignTrust:
+    ultimate_trust = 1
+    always_trusted = 2
+    usually_trusted = 3
+    usually_not_trusted = 4
+    unknown = 5
+    undefined = 6
+
+
+class KeyLegit:
+    complete_trust = 1
+    marginal_trust = 2
+    not_trusted = 3
+    unknown_trust = 4
