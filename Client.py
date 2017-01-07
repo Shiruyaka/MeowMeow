@@ -8,20 +8,16 @@ import hashlib
 import Utils
 
 PrivateRing = namedtuple('PrivateRing', 'timestamp key_id pub_key priv_key')
+PublicRing  = namedtuple('PublicRing', 'timestamp key_id pub_key owner_trust user_id key_legit')
 
 class Client():
-    def __init__(self, login, passwd):
+    def __init__(self):
         self.db = Database.Database()
-        self.id = 1
-        self.hash_password = hashlib.sha1(passwd).hexdigest()
-        self.login = login
         self.priv_keyring = list()
+        self.pub_keyring = list()
 
-        print(self.login)
-
-    def export_priv_keyring(self):
-        self.priv_keyring.append(PrivateRing('1','2','3','4'))
-        with open('priv_keyring.txt', 'w') as w:
+    def export_keyring(self, typeOfKeyRing):
+        with open(typeOfKeyRing + '_keyring.txt', 'w') as w:
             for key in self.priv_keyring:
                 record = ''
                 for attr in key:
@@ -29,15 +25,17 @@ class Client():
                 record = record.rstrip('|')
                 w.write(record)
 
-    def import_priv_keyring(self):
-        with open('priv_keyring.txt', 'r') as r:
+    def import_keyring(self, typeOfKeyRing):
+        with open(typeOfKeyRing + '_keyring.txt', 'r') as r:
             data = r.readlines()
             for line in data:
-                line = line.rstrip()
-                line = line.split('|')
-                record = PrivateRing(line[0], line[1], line[2], line[3])
+                line = line.rstrip().split('|')
+                record = PrivateRing(*line)
                 self.priv_keyring.append(record)
 
     def add_to_priv_keyring(self, time, id, pub, priv):
         self.priv_keyring.append(PrivateRing(time, id, pub, priv))
 
+
+d = PrivateRing(*['a', 'b', 'c', 'd'])
+print d

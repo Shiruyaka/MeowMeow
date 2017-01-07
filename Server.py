@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+#!/usr/bin/env python
 
 import socket
 import threading
@@ -18,11 +19,11 @@ class ClientThread(threading.Thread):
 
     def whatdo(self, content):
         answer_to_client = None
-
+        print content
         if content[0] == 'REG':
             answer_to_client = self.registration(content)
 
-        answer_to_client.ljust(2048, '=')
+        answer_to_client = answer_to_client.ljust(8192, '=')
         print len(answer_to_client)
 
         self.client.send(answer_to_client)
@@ -30,14 +31,14 @@ class ClientThread(threading.Thread):
 
     def registration(self, data):
         msg = None
-        pubkey_client = RSA.importKey(data[5])
+        pubkey_client = RSA.importKey(data[6])
         privkey_serv = RSA.importKey(open('priv_key.pem', 'r'))
 
         if self.db.check_nickname(data[1]) == False:
             self.db.add_user(data[1], data[2], data[3], data[5])
-            msg = 'OK'
+            msg = 'RE|OK'
         else:
-            msg = 'WRONG'
+            msg = 'RE|WRONG'
 
         msg = Utils.pgp_enc_msg(pubkey_client, privkey_serv, msg)
 

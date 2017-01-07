@@ -103,11 +103,13 @@ class RegisterWindow(tk.Frame):
             key_server_pub = RSA.importKey(open('pub_key.pem', 'r').read())
 
             msg = Utils.make_msg(args)
-            msg =  Utils.pgp_enc_msg(key_server_pub,key,msg)
-            msg.ljust(8192, '=')
-
+            msg = Utils.pgp_enc_msg(key_server_pub,key,msg)
+            msg = msg.ljust(8192, '=')
+            print len(msg)
             self.server_conn.send(msg)
-            respond = self.server_conn.recv(2048)
+            respond = self.server_conn.recv(8192)
+
+            respond = Utils.pgp_dec_msg()
 
 
 

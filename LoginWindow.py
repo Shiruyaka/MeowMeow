@@ -18,6 +18,7 @@ class LoginWindow(tk.Frame):
         self.db = Database.Database()
         self.grid()
         self.create_widgets()
+        self.client = Client.Client()
 
     def delete_attr(self):
         self.register_window.destroy()
