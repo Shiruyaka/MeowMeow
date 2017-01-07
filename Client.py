@@ -6,6 +6,7 @@ from collections import namedtuple
 import Database
 import hashlib
 import Utils
+from time import gmtime, strftime
 
 PrivateRing = namedtuple('PrivateRing', 'timestamp key_id pub_key priv_key')
 PublicRing  = namedtuple('PublicRing', 'timestamp key_id pub_key owner_trust user_id key_legit')

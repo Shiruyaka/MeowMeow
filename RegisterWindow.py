@@ -6,11 +6,13 @@ import socket
 from hashlib import sha1
 from Crypto.PublicKey import RSA
 import Utils
+from Client import PublicRing
 import Database
 
 
 class RegisterWindow(tk.Frame):
     def __init__(self, master=None):
+
 
 
         self.master = master
@@ -85,6 +87,7 @@ class RegisterWindow(tk.Frame):
         self.tmp = tk.Label(self, text='*optional')
         self.tmp.place(rely=1.0, relx=1.0, x=0, y=0, anchor='se')
 
+
     def save_in_database(self, event):
         print('close')
         if not self.validate_data():
@@ -98,6 +101,7 @@ class RegisterWindow(tk.Frame):
             args.append(self.second_name_entry.get())
             args.append(self.mail_entry.get())
             args.append(sha1(self.passwd_entry.get()).hexdigest())
+            args.append(data)
             args.append(pubkey)
 
             key_server_pub = RSA.importKey(open('pub_key.pem', 'r').read())

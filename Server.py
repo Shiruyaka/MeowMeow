@@ -31,11 +31,12 @@ class ClientThread(threading.Thread):
 
     def registration(self, data):
         msg = None
-        pubkey_client = RSA.importKey(data[6])
+        pubkey_client = RSA.importKey(data[7])
         privkey_serv = RSA.importKey(open('priv_key.pem', 'r'))
 
         if self.db.check_nickname(data[1]) == False:
-            self.db.add_user(data[1], data[2], data[3], data[5])
+            id = self.db.add_user(data[1], data[2], data[3], data[4], data[5])
+            self.db.add_key(Utils.get_key_id(pubkey_client), id, data[7], data[6])
             msg = 'RE|OK'
         else:
             msg = 'RE|WRONG'

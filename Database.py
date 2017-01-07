@@ -15,13 +15,21 @@ class Database():
             print 'Cos sie popsulo'
             exit()
 
-    def add_user(self, Nick, FirstName, SecondName, Password):
+    def add_user(self, Nick, FirstName, SecondName, Password, Mail):
 
         #pass_hash = hashlib.sha1(Password).hexdigest()
         cursor = self.connector.cursor()
-        cursor.callproc('Insert_NewUser', (Nick, FirstName, SecondName, Password))
+        cursor.callproc('Insert_NewUser', (Nick, FirstName, SecondName, Mail, Password))
+
+        id = None
+
+        for i in cursor.stored_results():
+            id = i.fetchall()
+
         self.connector.commit()
         cursor.close()
+
+        return (id[0])[0]
 
     def add_key(self, KeyId, UsrId, PubKey, CreateTime):
 
