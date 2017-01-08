@@ -6,7 +6,7 @@ import socket
 from hashlib import sha1
 from Crypto.PublicKey import RSA
 import Utils
-from Client import PublicRing
+from Client import PublicRing, PrivateRing
 import Database
 
 
@@ -14,12 +14,16 @@ class RegisterWindow(tk.Frame):
     def __init__(self, master=None):
 
 
-
         self.master = master
         self.master.title('Create new account')
         self.master.geometry('350x250')
         self.master.resizable(0, 0)
+        self.public_keyring = list()
+        self.private_kering = list()
+        key = RSA.importKey(open('pub_key.pem', 'r'))
+        id = Utils.get_key_id(key)
 
+        self.public_keyring.append(PublicRing('', id, key.exportKey(), '', '', ''))
         try:
             self.server_conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.server_conn.connect(('localhost', 5000))
@@ -93,7 +97,11 @@ class RegisterWindow(tk.Frame):
         if not self.validate_data():
             data, key = Utils.generate_new_pair_key()
             pubkey = key.publickey().exportKey(format='PEM')
+            id = Utils.get_key_id(key.publickey())
+
             print pubkey
+            # PrivateRing = namedtuple('PrivateRing', 'timestamp key_id pub_key priv_key')
+            self.private_kering.append(PrivateRing(data, id, pubkey, key.exportKey()))
 
             args = ['REG', ]
             args.append(self.user_entry.get())
@@ -112,8 +120,8 @@ class RegisterWindow(tk.Frame):
             print len(msg)
             self.server_conn.send(msg)
             respond = self.server_conn.recv(8192)
-
-            respond = Utils.pgp_dec_msg()
+            respond = Utils.pgp_dec_msg(respond, self.public_keyring, self.private_kering)
+            print respond
 
 
 

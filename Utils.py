@@ -8,6 +8,7 @@ from Crypto.Cipher import PKCS1_OAEP, AES
 from time import gmtime, strftime
 from hashlib import sha1
 import base64
+from Client import PrivateRing, PublicRing
 
 COLOR_OF_WINDOW = '#99CCFF'
 TYPE_OF_ROOM = ['Your rooms', 'Rooms', 'Friends']
@@ -58,15 +59,19 @@ def pgp_enc_msg(key_dst, key_source, msg):
 
     return base64.b64encode(id) + ';' + base64.b64encode(encrypted_sess_key) + ';' + base64.b64encode(mess_en)
 
-def pgp_dec_msg(key, msg):
+def pgp_dec_msg(msg, publicKeyRing, privateKeyRing):
+
+    #print privateKeyRing
+    #print publicKeyRing
 
     msg.rstrip('=')
     content = msg.split(';')
 
-    key_id = base64.b64decode(content[0])
-  #  print key_id
-
-    rsadecrypt = PKCS1_OAEP.new(RSA.importKey(open('priv_key.pem', 'r')))
+    id_of_key = base64.b64decode(content[0])
+   # print id_of_key
+    server_key = ([x.priv_key for x in privateKeyRing if x.key_id == id_of_key])
+   # print server_key
+    rsadecrypt = PKCS1_OAEP.new(RSA.importKey(server_key[0]))
     sessionkey = rsadecrypt.decrypt(base64.b64decode(content[1]))
     aes = AES.new(sessionkey, AES.MODE_CBC, IV)
 
@@ -75,15 +80,16 @@ def pgp_dec_msg(key, msg):
     msg_de[1] = base64.b64decode(msg_de[1])
 
     action =  msg_de[0].split('|')[0]
-    veryfier = None
-
+    print msg_de
+    client_key = None
     if action == 'REG':
         client_key = msg_de[0].split('|')[-1]
-        veryfier = PKCS1_v1_5.new(RSA.importKey(client_key))
     else:
-        # client_key = PKCS1_v1_5.new(RSA.importKey(find_key_by_id))
-        print 'cos'
+        id_of_key = msg_de[0].split('|')[-1]
+        client_key = ([x.pub_key for x in publicKeyRing if x.key_id == id_of_key])
 
+    print client_key
+    veryfier = PKCS1_v1_5.new(RSA.importKey(client_key))
     digest = SHA256.new()
     digest.update(msg_de[0])
 
