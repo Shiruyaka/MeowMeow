@@ -8,7 +8,6 @@ from Crypto.Cipher import PKCS1_OAEP, AES
 from time import gmtime, strftime
 from hashlib import sha1
 import base64
-from Client import PrivateRing, PublicRing
 
 COLOR_OF_WINDOW = '#99CCFF'
 TYPE_OF_ROOM = ['Your rooms', 'Rooms', 'Friends']
@@ -82,6 +81,7 @@ def pgp_dec_msg(msg, publicKeyRing, privateKeyRing):
     action =  msg_de[0].split('|')[0]
     print msg_de
     client_key = None
+
     if action == 'REG':
         client_key = msg_de[0].split('|')[-1]
     else:
@@ -107,9 +107,9 @@ def pgp_dec_msg(msg, publicKeyRing, privateKeyRing):
 def make_msg(msg_content):
     msg = ''
     for i in range(len(msg_content) - 1) :
-        msg += msg_content[i] + '|'
+        msg += str(msg_content[i]) + '|'
 
-    msg = msg + msg_content[-1]
+    msg = msg + str(msg_content[-1])
 
     return msg
 

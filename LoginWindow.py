@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 import Tkinter as tk
+import socket
+from hashlib import sha1
 import RegisterWindow
 import UserWindowWithTree
 import Database
 import Client
 import Utils
+import Keyring
 
 
 class LoginWindow(tk.Frame):
@@ -18,7 +21,6 @@ class LoginWindow(tk.Frame):
         self.db = Database.Database()
         self.grid()
         self.create_widgets()
-        self.client = Client.Client()
 
     def delete_attr(self):
         self.register_window.destroy()
@@ -36,6 +38,26 @@ class LoginWindow(tk.Frame):
         pass
 
     def go_to_user_window(self, event):
+
+        try:
+            self.server_conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.server_conn.connect(('localhost', 5000))
+        except:
+            print 'Connection problem'
+            exit(0)
+
+        ########## sprawdzac czy jest plik z priv keyring
+
+        public_keyring = Keyring.import_keyring('pub')
+        private_keyring = Keyring.import_keyring('priv')
+
+
+        passh = sha1(self.password_entry.get()).hexdigest()
+        msg = Utils.make_msg(('LOG', self.login_entry.get(), passh))
+
+        msg = Utils.pgp_enc_msg(msg)
+        self.server_conn.send()
+
         id_usr = self.db.verify(self.login_entry.get(), self.password_entry.get())
 
         if id_usr != 0:

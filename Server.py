@@ -7,7 +7,7 @@ from Crypto.PublicKey import RSA
 import base64
 import Utils
 import Database
-from Client import PrivateRing, PublicRing
+from Keyring import PrivateRing, PublicRing
 
 
 class ClientThread(threading.Thread):
@@ -19,11 +19,11 @@ class ClientThread(threading.Thread):
         self.client = client
         self.daemon = True
         self.db = Database.Database()
-        print self.privateKeyRing
+        #print self.privateKeyRing
 
     def whatdo(self, content):
         answer_to_client = None
-        print content
+        #print content
         if content[0] == 'REG':
             answer_to_client = self.registration(content)
 
@@ -80,8 +80,11 @@ class Server(object):
         self.server_loop()
 
     def server_loop(self):
+        i = 0
         while True:
             CLIENT, ADDRESS = self.server.accept()
+            i= i+1
+            print i
             ct = ClientThread(self.publicKeyRing, self.privateKeyRing, CLIENT)
             ct.run()
 

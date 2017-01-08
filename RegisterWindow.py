@@ -6,7 +6,7 @@ import socket
 from hashlib import sha1
 from Crypto.PublicKey import RSA
 import Utils
-from Client import PublicRing, PrivateRing
+from Keyring import PublicRing, PrivateRing
 import Database
 
 
@@ -24,13 +24,6 @@ class RegisterWindow(tk.Frame):
         id = Utils.get_key_id(key)
 
         self.public_keyring.append(PublicRing('', id, key.exportKey(), '', '', ''))
-        try:
-            self.server_conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.server_conn.connect(('localhost', 5000))
-        except:
-            print 'Connection problem'
-            exit(0)
-
 
         tk.Frame.__init__(self, master=self.master)
 
@@ -91,16 +84,21 @@ class RegisterWindow(tk.Frame):
         self.tmp = tk.Label(self, text='*optional')
         self.tmp.place(rely=1.0, relx=1.0, x=0, y=0, anchor='se')
 
-
     def save_in_database(self, event):
         print('close')
         if not self.validate_data():
+
+            try:
+                self.server_conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.server_conn.connect(('localhost', 5000))
+            except:
+                print 'Connection problem'
+                exit(0)
+
             data, key = Utils.generate_new_pair_key()
             pubkey = key.publickey().exportKey(format='PEM')
             id = Utils.get_key_id(key.publickey())
 
-            print pubkey
-            # PrivateRing = namedtuple('PrivateRing', 'timestamp key_id pub_key priv_key')
             self.private_kering.append(PrivateRing(data, id, pubkey, key.exportKey()))
 
             args = ['REG', ]
@@ -113,16 +111,32 @@ class RegisterWindow(tk.Frame):
             args.append(pubkey)
 
             key_server_pub = RSA.importKey(open('pub_key.pem', 'r').read())
+            key_server_id = Utils.get_key_id(key_server_pub)
 
             msg = Utils.make_msg(args)
             msg = Utils.pgp_enc_msg(key_server_pub,key,msg)
             msg = msg.ljust(8192, '=')
-            print len(msg)
+            #print len(msg)
             self.server_conn.send(msg)
             respond = self.server_conn.recv(8192)
             respond = Utils.pgp_dec_msg(respond, self.public_keyring, self.private_kering)
-            print respond
 
+
+            if respond[1] == 'OK':
+                self.error_label.forget()
+                with open('priv_keyring.txt', 'w') as file:
+                    #PrivateRing = namedtuple('PrivateRing', 'timestamp key_id pub_key priv_key')
+                    msg = Utils.make_msg((data, id, pubkey, key.exportKey()))
+                    file.write(msg + '@')
+                with open('pub_keyring.txt', 'w') as file:
+                    msg = Utils.make_msg(('',key_server_id, key_server_pub.exportKey(), Utils.OwnerTrust.always_trusted, 'Server', 1))
+                    msg += '@'
+                    file.write(msg)
+
+                self.master.destroy()
+            else:
+                self.error_label.config(text="Nickname is taken!")
+                self.error_label.grid(columnspan=2, column=0)
 
 
     def validate_data(self):
@@ -137,12 +151,6 @@ class RegisterWindow(tk.Frame):
         elif self.passwd_entry.get() != self.repeat_passwd_entry.get():
             self.error_label.config(text="Passwords are different!")
             show_label = True
-
-       # elif self.db.check_nickname(self.user_entry) == 1:
-       #     self.error_label.config(text="Nickname is taken!")
-       #     show_label = True
-
-        #print(show_label)
 
         if show_label:
             self.error_label.grid(columnspan=2, column=0)
