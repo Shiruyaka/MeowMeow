@@ -30,13 +30,18 @@ class Client():
                 for attr in key:
                     record += attr + '|'
                 record = record.rstrip('|')
+                record += '@'
                 w.write(record)
 
     def import_keyring(self, typeOfKeyRing):
         with open(typeOfKeyRing + '_keyring.txt', 'r') as r:
-            data = r.readlines()
+            data = r.read()
+            data = data.rstrip().split('@')
             for line in data:
+                if not line:
+                    continue
                 line = line.rstrip().split('|')
+                print(line)
                 if typeOfKeyRing == 'priv':
                     self.priv_keyring.append(PrivateRing(*line))
                 elif typeOfKeyRing == 'pub':
