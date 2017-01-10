@@ -8,6 +8,7 @@ from Crypto.Cipher import PKCS1_OAEP, AES
 from time import gmtime, strftime
 from hashlib import sha1
 import base64
+import Keyring
 
 COLOR_OF_WINDOW = '#99CCFF'
 TYPE_OF_ROOM = ['Your rooms', 'Rooms', 'Friends']
@@ -17,6 +18,7 @@ def login():
     pass
 
 def get_key_id(key_file):
+    print key_file
     key = key_file.exportKey(format = 'PEM')
     pub_key_id = key.split('-----')[2].lstrip().rstrip()
     pub_key_id = pub_key_id[-8:].replace('\n', '')
@@ -68,9 +70,12 @@ def pgp_dec_msg(msg, publicKeyRing, privateKeyRing):
 
     id_of_key = base64.b64decode(content[0])
    # print id_of_key
-    server_key = ([x.priv_key for x in privateKeyRing if x.key_id == id_of_key])
+    print id_of_key
+    server_key = Keyring.find_privkey_in_ring(privateKeyRing, id_of_key)
+    print server_key
+    # ([x.priv_key for x in privateKeyRing if x.key_id == id_of_key])
    # print server_key
-    rsadecrypt = PKCS1_OAEP.new(RSA.importKey(server_key[0]))
+    rsadecrypt = PKCS1_OAEP.new(RSA.importKey(server_key))
     sessionkey = rsadecrypt.decrypt(base64.b64decode(content[1]))
     aes = AES.new(sessionkey, AES.MODE_CBC, IV)
 
@@ -86,9 +91,8 @@ def pgp_dec_msg(msg, publicKeyRing, privateKeyRing):
         client_key = msg_de[0].split('|')[-1]
     else:
         id_of_key = msg_de[0].split('|')[-1]
-        client_key = ([x.pub_key for x in publicKeyRing if x.key_id == id_of_key])
+        client_key = Keyring.find_pubkey_in_ring(publicKeyRing, id_of_key)
 
-    print client_key
     veryfier = PKCS1_v1_5.new(RSA.importKey(client_key))
     digest = SHA256.new()
     digest.update(msg_de[0])

@@ -2,6 +2,7 @@
 
 import mysql.connector
 import hashlib
+import Keyring
 
 class Database():
 
@@ -39,12 +40,20 @@ class Database():
         cursor.close()
 
     def verify(self, Nick, Password):
+        person_data = None
         cursor = self.connector.cursor()
-        cursor.execute('SELECT Authentication_int(%s, %s)',(Nick, str(hashlib.sha1(Password).hexdigest())))
-        result = cursor.fetchall()
+        cursor.callproc('Authentication', [Nick, Password])
+
+        for i in cursor.stored_results():
+            person_data = i.fetchall()
+
         self.connector.commit()
         cursor.close()
-        return result[0][0]
+
+        if len(person_data) > 0:
+            return person_data[0]
+        else: return list()
+
 
     def get_user_info(self, IdUsr):
         person_data = None
@@ -53,7 +62,7 @@ class Database():
         cursor.callproc('GetUserInfo',[IdUsr])
 
         for i in cursor.stored_results():
-            person_data = i.fetchall()[0]
+            person_data = i.fetchall()
 
         self.connector.commit()
         cursor.close()
@@ -68,3 +77,18 @@ class Database():
         cursor.close()
 
         return result[0][0]
+
+    def get_keys_of_users(self):
+        result = None
+        cursor = self.connector.cursor()
+        cursor.callproc('GetPublicKeys',())
+
+        for i in cursor.stored_results():
+            result = i.fetchall()
+
+        result = Keyring.parse_keys_from_db(result)
+
+        self.connector.commit()
+        cursor.close()
+
+        return result

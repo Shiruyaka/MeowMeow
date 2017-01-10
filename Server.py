@@ -7,7 +7,7 @@ from Crypto.PublicKey import RSA
 import base64
 import Utils
 import Database
-from Keyring import PrivateRing, PublicRing
+from Keyring import PrivateRing, PublicRing, find_pubkey_in_ring
 
 
 class ClientThread(threading.Thread):
@@ -26,9 +26,11 @@ class ClientThread(threading.Thread):
         #print content
         if content[0] == 'REG':
             answer_to_client = self.registration(content)
+        elif content[0] == 'LOG':
+            answer_to_client = self.authentication(content)
 
         answer_to_client = answer_to_client.ljust(8192, '=')
-        print len(answer_to_client)
+        #print len(answer_to_client)
 
         self.client.send(answer_to_client)
 
@@ -36,15 +38,14 @@ class ClientThread(threading.Thread):
     def registration(self, data):
         msg = None
         pubkey_client = RSA.importKey(data[7])
-        #privkey_serv = RSA.importKey(open('priv_key.pem', 'r'))
         privkey_serv = RSA.importKey(self.privateKeyRing[0].priv_key)
         key_id = self.privateKeyRing[0].key_id
-        #print self.privateKeyRing[0].priv_key
 
         if self.db.check_nickname(data[1]) == False:
             id = self.db.add_user(data[1], data[2], data[3], data[4], data[5])
-            self.db.add_key(Utils.get_key_id(pubkey_client), id, data[7], data[6])
-            ##### fill public key ring later
+            pub_key_id = Utils.get_key_id(pubkey_client)
+            self.db.add_key(pub_key_id, id, data[7], data[6])
+            self.publicKeyRing.append(PublicRing(data[6], pub_key_id, data[7], 0, data[1], 0))
             msg = 'RE|OK'
         else:
             msg = 'RE|WRONG'
@@ -53,6 +54,26 @@ class ClientThread(threading.Thread):
         msg = Utils.pgp_enc_msg(pubkey_client, privkey_serv, msg)
 
         return msg
+
+    def authentication(self, data):
+        key_client = RSA.importKey(find_pubkey_in_ring(self.publicKeyRing, whose=data[1]))
+        key_server = RSA.importKey(self.privateKeyRing[0].priv_key)
+
+        key_server_id = Utils.get_key_id(key_server.publickey())
+
+        respond = self.db.verify(data[1], data[2])
+        msg = None
+
+        if len(respond) > 0:
+            msg = 'RE|OK|' + Utils.make_msg(respond)
+            print 'Valid'
+        else:
+            msg = 'RE|WRONG'
+            print 'Wrong username or password'
+
+        msg = msg + '|' + key_server_id
+
+        return Utils.pgp_enc_msg(key_client, key_server, msg)
 
     def run(self):
         msg = self.client.recv(8192)
@@ -66,25 +87,25 @@ class Server(object):
         self.ADDRESS = 'localhost'
 
         self.privateKeyRing = list()
-        self.publicKeyRing = list()
+        self.db = Database.Database()
 
-        ############ uzupelnic trzeba publicKeyRing
-        ############PrivateRing = namedtuple('PrivateRing', 'timestamp key_id pub_key priv_key')
+        self.publicKeyRing = self.db.get_keys_of_users()
+
         key = RSA.importKey(open('priv_key.pem', 'r'))
         id = Utils.get_key_id(key.publickey())
-
         self.privateKeyRing.append(PrivateRing('',id , key.publickey().exportKey(), key.exportKey()))
+
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.bind((self.ADDRESS, self.PORT))
         self.server.listen(5)
+
+        print self.publicKeyRing
         self.server_loop()
 
     def server_loop(self):
-        i = 0
+
         while True:
             CLIENT, ADDRESS = self.server.accept()
-            i= i+1
-            print i
             ct = ClientThread(self.publicKeyRing, self.privateKeyRing, CLIENT)
             ct.run()
 

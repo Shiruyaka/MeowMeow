@@ -1,5 +1,7 @@
-from collections import namedtuple
+# -*- coding: utf-8 -*-
 
+from collections import namedtuple
+import time
 
 PrivateRing = namedtuple('PrivateRing', 'timestamp key_id pub_key priv_key')
 PublicRing  = namedtuple('PublicRing', 'timestamp key_id pub_key owner_trust user_name key_legit')
@@ -56,3 +58,17 @@ def find_pubkey_in_ring(ring, id = None, whose = None):
 
 def find_privkey_in_ring(ring, id):
     return ([x.priv_key for x in ring if x.key_id == id])[0]
+
+def parse_keys_from_db(data):
+    ring = list()
+
+    for i in data:
+        tmstmp = time.mktime(i[0].timetuple())
+        id = i[1]
+        pub_key = str(i[2])
+        usr_name = i[3]
+        trust = i[4]
+
+        ring.append(PublicRing(tmstmp, id, pub_key , 0, usr_name, trust))
+
+    return ring
