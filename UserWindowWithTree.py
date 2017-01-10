@@ -1,5 +1,6 @@
 import Tkinter as tk
 import ttk as ttk
+import RoomCreator
 import Utils
 
 
@@ -21,6 +22,19 @@ class UserWindowWithTree(tk.Frame):
         self.rowconfigure(1, weight=1)
         self.create_widgets()
 
+    def delete_attr(self):
+        self.create_room_window.destroy()
+        delattr(self, 'create_room_window')
+        delattr(self, 'create_room_app')
+        pass
+
+    def go_to_creating_room(self):
+        if hasattr(self, 'create_room_window') == False:
+            self.create_room_window = tk.Toplevel(self.master)
+            self.create_room_app = RoomCreator.RoomCreator(self.create_room_window)
+            self.create_room_window.protocol('WM_DELETE_WINDOW', self.delete_attr)
+        pass
+
     def create_menu(self):
         top = self.winfo_toplevel()
         self.menu_bar = tk.Menu(top)
@@ -34,6 +48,8 @@ class UserWindowWithTree(tk.Frame):
 
         self.social_menu = tk.Menu(self.menu_bar, tearoff=0)
         self.menu_bar.add_cascade(label='Social', menu=self.social_menu)
+        self.social_menu.add_command(label='Create room', command = self.go_to_creating_room)
+
         self.file_menu.add_command(label='About')
 
     def create_rooms_tree(self):
@@ -64,8 +80,3 @@ class UserWindowWithTree(tk.Frame):
         self.usr_info_lbl = tk.Label(master=self.master, text='Zalogowany jako ' + self.client.login)
         self.usr_info_lbl.grid(row = 0, column = 0, columnspan = 2)
         self.create_rooms_tree()
-
-
-#root = tk.Tk()
-#app = UserWindowWithTree(root)
-#root.mainloop()
