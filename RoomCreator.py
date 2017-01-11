@@ -1,14 +1,18 @@
 import Tkinter as tk
 import ttk as ttk
 import Utils
-
+from Crypto.PublicKey import RSA
+import Keyring
+import socket
 
 class RoomCreator(tk.Frame):
-    def __init__(self, master):
+    def __init__(self, master, client):
         self.master = master
         self.master.title('Room creator')
         self.master.geometry('250x220')
         self.master.resizable(0, 0)
+
+        self.client = client
 
         tk.Frame.__init__(self, master=self.master)
         self.columnconfigure(0, weight=1)
@@ -31,6 +35,34 @@ class RoomCreator(tk.Frame):
         self.create_widgets()
 
 
+    def create_room(self, event):
+        ##bez walidacji bo nie mam czasu na razie
+        args = list()
+        args.append('CRM')
+        args.append(self.client.id)
+        args.append(self.room_name_entry.get().rstrip())
+        args.append(self.user_lim_combobx.get())
+        args.append(self.type_of_room_combobx.get())
+        args.append(self.room_desc_txt.get("1.0", 'end-1c'))
+
+        key_user = RSA.importKey(self.client.priv_keyring[0].priv_key)
+        key_id = Utils.get_key_id(key_user.publickey())
+        key_server = RSA.importKey(Keyring.find_pubkey_in_ring(self.client.pub_keyring, whose='Server'))
+        args.append(key_id)
+
+        msg = Utils.make_msg(args)
+        msg = Utils.pgp_enc_msg(key_server, key_user, msg)
+       # print len(msg)
+
+        try:
+            self.server_conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.server_conn.connect(('localhost', 5000))
+        except:
+            print 'Connection problem'
+            exit(0)
+
+        msg.ljust(8192, '=')
+        self.server_conn.send(msg)
 
     def create_widgets(self):
 
@@ -67,11 +99,7 @@ class RoomCreator(tk.Frame):
 
         self.create_btn = tk.Button(master=self, text='Create')
         self.create_btn.grid(column=2, row = 9, sticky = 's')
+        self.create_btn.bind('<Button-1>', self.create_room)
 
         self.cancel_btn = tk.Button(master=self, text='Cancel')
         self.cancel_btn.grid(column=0, row = 9, sticky = 'w')
-
-
-root = tk.Tk()
-RoomCreator(root)
-root.mainloop()

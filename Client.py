@@ -1,11 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from Crypto.PublicKey import RSA
-from Crypto import Random
-import Database
-import hashlib
-import Utils
-from time import gmtime, strftime
+import socket
 
 
 
@@ -22,7 +17,6 @@ class Client():
         self.firstName = user_data[3]
         self.secondName = user_data[4]
         self.mail = user_data[5]
-
 
     def find_key_in_ring(self, typeOfKeyRing, id_key, type_of_searched_key):
         if typeOfKeyRing == 'pub':

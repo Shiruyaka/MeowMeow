@@ -28,12 +28,15 @@ class ClientThread(threading.Thread):
             answer_to_client = self.registration(content)
         elif content[0] == 'LOG':
             answer_to_client = self.authentication(content)
+        elif content[0] == 'CRM':
+            answer_to_client = self.createroom(content)
 
         answer_to_client = answer_to_client.ljust(8192, '=')
         #print len(answer_to_client)
 
         self.client.send(answer_to_client)
 
+    def createroom(self, content):
 
     def registration(self, data):
         msg = None

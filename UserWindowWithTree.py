@@ -31,7 +31,7 @@ class UserWindowWithTree(tk.Frame):
     def go_to_creating_room(self):
         if hasattr(self, 'create_room_window') == False:
             self.create_room_window = tk.Toplevel(self.master)
-            self.create_room_app = RoomCreator.RoomCreator(self.create_room_window)
+            self.create_room_app = RoomCreator.RoomCreator(self.create_room_window, self.client)
             self.create_room_window.protocol('WM_DELETE_WINDOW', self.delete_attr)
         pass
 

@@ -64,7 +64,7 @@ def pgp_dec_msg(msg, publicKeyRing, privateKeyRing):
 
     #print privateKeyRing
     #print publicKeyRing
-
+    print msg
     msg.rstrip('=')
     content = msg.split(';')
 

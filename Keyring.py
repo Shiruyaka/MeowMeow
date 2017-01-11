@@ -48,7 +48,7 @@ def add_to_keyring(ring, typeOfKeyRing, attributes):
 
     return ring
 
-
+######randomly choose key from private keyring to encrypt
 
 def find_pubkey_in_ring(ring, id = None, whose = None):
     if id:
