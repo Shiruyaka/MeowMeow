@@ -50,8 +50,16 @@ class ClientThread(threading.Thread):
     def createroom(self, data):
         respond = self.db.create_room(data[2], data[5], data[1], data[3], data[4])
         key_client = RSA.importKey(find_pubkey_in_ring(self.publicKeyRing, whose=self.nick))
+        key_server = RSA.importKey(self.privateKeyRing[0].priv_key)
 
+        key_server_id = Utils.get_key_id(key_server.publickey())
 
+        if respond != 0:
+            msg = Utils.make_msg(('RE', 'OK', respond, key_server_id))
+        else:
+            msg = Utils.make_msg(('RE', 'WRONG', key_server_id))
+
+        return Utils.pgp_enc_msg(key_client, key_server, msg)
 
     def registration(self, data):
         msg = None

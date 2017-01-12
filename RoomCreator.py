@@ -54,15 +54,12 @@ class RoomCreator(tk.Frame):
         msg = Utils.pgp_enc_msg(key_server, key_user, msg)
        # print len(msg)
 
-        try:
-            self.server_conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.server_conn.connect(('localhost', 5000))
-        except:
-            print 'Connection problem'
-            exit(0)
-
         msg.ljust(8192, '=')
-        self.server_conn.send(msg)
+        self.client.conn.send(msg)
+        respond = self.client.conn.recv(8192)
+
+        print Utils.pgp_dec_msg(respond, self.client.pub_keyring, self.client.priv_keyring)
+
 
     def create_widgets(self):
 
