@@ -6,7 +6,7 @@ import socket
 
 
 class Client():
-    def __init__(self, user_data, priv_keyring, pub_keyring):#id, login, password, firstName, secondName, mail):
+    def __init__(self, user_data, priv_keyring, pub_keyring, connection):#id, login, password, firstName, secondName, mail):
 
         self.priv_keyring = priv_keyring
         self.pub_keyring = pub_keyring
@@ -17,6 +17,8 @@ class Client():
         self.firstName = user_data[3]
         self.secondName = user_data[4]
         self.mail = user_data[5]
+
+        self.conn = connection
 
     def find_key_in_ring(self, typeOfKeyRing, id_key, type_of_searched_key):
         if typeOfKeyRing == 'pub':

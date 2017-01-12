@@ -92,3 +92,15 @@ class Database():
         cursor.close()
 
         return result
+
+    def create_room(self, RoomName, RoomDesc, RoomMaster, RoomMaxOnline, RoomKind):
+        id = None
+        cursor = self.connector.cursor()
+        cmd = 'SELECT CreateRoom(%s,%s,%s,%s,%s)'
+        cursor.execute(cmd, (RoomName, RoomDesc, RoomMaster, RoomMaxOnline, RoomKind))
+        id = (cursor.fetchall()[0])[0]
+
+        self.connector.commit()
+        cursor.close()
+
+        return id

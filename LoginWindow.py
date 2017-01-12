@@ -82,7 +82,7 @@ class LoginWindow(tk.Frame):
             user_data.append(content[4])
             user_data.append(content[5])
 
-            client = Client.Client(user_data, private_keyring, public_keyring)
+            client = Client.Client(user_data, private_keyring, public_keyring, self.server_conn)
             app =  UserWindowWithTree.UserWindowWithTree(client, self.master)
             self.destroy()
         else:
