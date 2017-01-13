@@ -144,7 +144,8 @@ class Server(object):
         self.server.bind((self.ADDRESS, self.PORT))
         self.server.listen(5)
 
-        self.rooms = list()
+        self.rooms = self.db.get_all_rooms()
+        print self.rooms
         self.server_loop()
 
     def giving_out_data(self):

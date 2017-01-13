@@ -3,6 +3,7 @@
 import mysql.connector
 import hashlib
 import Keyring
+import Room
 
 class Database():
 
@@ -104,3 +105,16 @@ class Database():
         cursor.close()
 
         return id
+
+    def get_all_rooms(self):
+        rooms = None
+        cursor = self.connector.cursor()
+        cursor.callproc('GetRooms', ())
+
+        for i in cursor.stored_results():
+            rooms = i.fetchall()
+
+        self.connector.commit()
+        cursor.close()
+
+        return Room.parse_rooms_from_db(rooms)
