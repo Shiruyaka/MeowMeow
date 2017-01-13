@@ -52,12 +52,24 @@ def add_to_keyring(ring, typeOfKeyRing, attributes):
 
 def find_pubkey_in_ring(ring, id = None, whose = None):
     if id:
-        return ([x.pub_key for x in ring if x.key_id == id])[0]
+        result = [x.pub_key for x in ring if x.key_id == id]
+        if len(result) == 0:
+            return []
+        else:
+            return result[0]
     elif whose:
-        return ([x.pub_key for x in ring if x.user_name == whose])[0]
+        result = [x.pub_key for x in ring if x.user_name == whose]
+        if len(result) == 0:
+            return []
+        else:
+            return result[0]
 
 def find_privkey_in_ring(ring, id):
-    return ([x.priv_key for x in ring if x.key_id == id])[0]
+    result = [x.priv_key for x in ring if x.key_id == id]
+    if len(result) != 0:
+        return result[0]
+    else:
+        return []
 
 def parse_keys_from_db(data):
     ring = list()
