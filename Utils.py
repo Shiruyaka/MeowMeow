@@ -29,13 +29,7 @@ def generate_new_pair_key():
     random_generator = Random.new().read
     pair_key = RSA.generate(2048, random_generator)
 
-    #pub_key_val = pair_key.publickey().exportKey(format='PEM')
-    #pub_key_id = pub_key_val.split('-----')[2].lstrip().rstrip()
-    #pub_key_id = pub_key_id[-8:].replace('\n', '')
-
     data = strftime("%Y-%m-%d %H:%M:%S", gmtime())
-    #self.db.add_key(pub_key_id, self.id, pub_key_val, data)
-
     return data, pair_key
 
 def pgp_enc_msg(key_dst, key_source, msg):
@@ -62,19 +56,12 @@ def pgp_enc_msg(key_dst, key_source, msg):
 
 def pgp_dec_msg(msg, publicKeyRing, privateKeyRing):
 
-    #print privateKeyRing
-    #print publicKeyRing
-    print msg
     msg.rstrip('=')
     content = msg.split(';')
 
     id_of_key = base64.b64decode(content[0])
-   # print id_of_key
-    print id_of_key
     server_key = Keyring.find_privkey_in_ring(privateKeyRing, id_of_key)
-    print server_key
-    # ([x.priv_key for x in privateKeyRing if x.key_id == id_of_key])
-   # print server_key
+
     rsadecrypt = PKCS1_OAEP.new(RSA.importKey(server_key))
     sessionkey = rsadecrypt.decrypt(base64.b64decode(content[1]))
     aes = AES.new(sessionkey, AES.MODE_CBC, IV)
@@ -84,7 +71,6 @@ def pgp_dec_msg(msg, publicKeyRing, privateKeyRing):
     msg_de[1] = base64.b64decode(msg_de[1])
 
     action =  msg_de[0].split('|')[0]
-    print msg_de
     client_key = None
 
     if action == 'REG':

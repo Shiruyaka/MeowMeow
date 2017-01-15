@@ -21,6 +21,7 @@ class UserWindowWithTree(tk.Frame):
         self.rowconfigure(0, weight = 1)
         self.rowconfigure(1, weight=1)
         self.create_widgets()
+        print 'wlacz sie debilu'
 
     def delete_attr(self):
         self.create_room_window.destroy()

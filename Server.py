@@ -4,33 +4,38 @@
 import socket
 import threading
 from Crypto.PublicKey import RSA
-import base64
 import Utils
 import Database
 import select
 import Queue
 from Keyring import PrivateRing, PublicRing, find_pubkey_in_ring
 
-class ClientThread(threading.Thread):
-    message_queue = Queue.Queue()
-
-    def __init__(self, publicKeyRing, privateKeyRing, client):
+class Client(threading.Thread):
+    def __init__(self, publicKeyRing, privateKeyRing, connection):
         threading.Thread.__init__(self)
-
-        self.client = client
 
         self.nick = None
         self.id = None
 
         self.publicKeyRing = publicKeyRing
         self.privateKeyRing = privateKeyRing
-        self.db = Database.Database()
+
+        self.connection = connection
 
         self.daemon = True
-        self.end_conn = False
 
+
+class ClientRecv(Client):
+
+
+    def __init__(self, publicKeyRing, privateKeyRing, connection, client_send):
+        Client.__init__(self, publicKeyRing, privateKeyRing, connection)
+
+        self.client_send = client_send
+        self.db = Database.Database()
+
+        self.end_conn = False
         self.data = None
-        self.isSending = False
 
     def whatdo(self, content):
         answer_to_client = None
@@ -43,9 +48,9 @@ class ClientThread(threading.Thread):
             answer_to_client = self.createroom(content)
 
         answer_to_client = answer_to_client.ljust(8192, '=')
+        self.client_send.data.put(answer_to_client)
 
 
-        self.client.send(answer_to_client)
 
     def createroom(self, data):
         respond = self.db.create_room(data[2], data[5], data[1], data[3], data[4])
@@ -55,9 +60,9 @@ class ClientThread(threading.Thread):
         key_server_id = Utils.get_key_id(key_server.publickey())
 
         if respond != 0:
-            msg = Utils.make_msg(('RE', 'OK', respond, key_server_id))
+            msg = Utils.make_msg(('CRM', 'OK', respond, key_server_id))
         else:
-            msg = Utils.make_msg(('RE', 'WRONG', key_server_id))
+            msg = Utils.make_msg(('CRM', 'WRONG', key_server_id))
 
         return Utils.pgp_enc_msg(key_client, key_server, msg)
 
@@ -72,9 +77,9 @@ class ClientThread(threading.Thread):
             pub_key_id = Utils.get_key_id(pubkey_client)
             self.db.add_key(pub_key_id, id, data[7], data[6])
             self.publicKeyRing.append(PublicRing(data[6], pub_key_id, data[7], 0, data[1], 0))
-            msg = 'RE|OK'
+            msg = 'REG|OK'
         else:
-            msg = 'RE|WRONG'
+            msg = 'REG|WRONG'
 
         msg = msg + '|' + key_id
         msg = Utils.pgp_enc_msg(pubkey_client, privkey_serv, msg)
@@ -95,33 +100,50 @@ class ClientThread(threading.Thread):
             self.id = respond[0]
             self.nick = data[1]
 
-            msg = 'RE|OK|' + Utils.make_msg(respond)
+            msg = 'LOG|OK|' + Utils.make_msg(respond)
             print 'Valid'
         else:
-            msg = 'RE|WRONG'
+            msg = 'LOG|WRONG'
             print 'Wrong username or password'
             self.end_conn = True
 
         msg = msg + '|' + key_server_id
-
         return Utils.pgp_enc_msg(key_client, key_server, msg)
 
     def run(self):
-        ready = select.select([self.client],[],[])
 
         while not self.end_conn:
+            print 'wolololo'
+            readable, writable, exceptional = select.select([self.connection], [], [])
 
-            if ready[0]:
-                self.isSending = True
-                msg = self.client.recv(8192)
+            if readable[0]:
+
+                msg = self.connection.recv(8192)
                 content = Utils.pgp_dec_msg(msg, self.publicKeyRing, self.privateKeyRing) ## choosing key need
                 self.whatdo(content)
-                self.isSending = False
-            elif self.data:
-                self.isSending = True
 
-                self.isSending = False
                 #code for send massage from room to client
+
+
+class ClientSend(Client):
+
+
+    def __init__(self, publicKeyRing, privateKeyRing, connection):
+        Client.__init__(self, publicKeyRing, privateKeyRing, connection)
+        self.end_conn = False
+        self.data = Queue.Queue()
+
+    def run(self):
+         while not self.end_conn:
+             print 'Wolololo'
+             readable, writable, exceptional = select.select([], [self.connection], [])
+
+             if writable[0] and self.data.empty():
+                 msg = self.data.get()
+                 print msg
+                 self.connection.send(msg)
+
+
 
 
 
@@ -145,22 +167,26 @@ class Server(object):
         self.server.listen(5)
 
         self.rooms = self.db.get_all_rooms()
-        print self.rooms
         self.server_loop()
 
-    def giving_out_data(self):
-
-        while True:
-            if not ClientThread.message_queue.empty():
-                for t in threading.enumerate():
-                    if t is ClientThread:
-                        print 'jupi' ###na razie tylko, jeszcze trzeba roomy wczytac tutaj usi byc wysylanie do roomow
+    # def giving_out_data(self):
+    #
+    #     while True:
+    #         if not ClientThread.message_queue.empty():
+    #             for t in threading.enumerate():
+    #                 if t is ClientThread:
+    #                     print 'jupi' ###na razie tylko, jeszcze trzeba roomy wczytac tutaj usi byc wysylanie do roomow
 
     def server_loop(self):
-        i = 0
+        connected_users = list()
+
         while True:
             CLIENT, ADDRESS = self.server.accept()
-            i = i + 1
-            print i
-            ct = ClientThread(self.publicKeyRing, self.privateKeyRing, CLIENT)
-            ct.run()
+            c_send = ClientSend(self.publicKeyRing, self.privateKeyRing, CLIENT)
+            c_recv = ClientRecv(self.publicKeyRing, self.privateKeyRing, CLIENT, c_send)
+
+        #    connected_users.append((c_recv, c_send))
+            c_recv.start()
+            c_send.start()
+
+
