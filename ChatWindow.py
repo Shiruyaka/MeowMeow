@@ -4,10 +4,10 @@
 import Tkinter as tk
 
 
-class RoomCreator(tk.Frame):
+class ChatWindow(tk.Frame):
     def __init__(self, master):
         self.master = master
-        self.master.title('Room creator')
+        self.master.title('Room')
         self.master.geometry('600x490')
         self.master.resizable(0, 0)
 
@@ -38,10 +38,3 @@ class RoomCreator(tk.Frame):
 
         self.input_user_txt = tk.Text(master=self, width=62, height=8)
         self.input_user_txt.grid(column=0, row=2, rowspan=1, columnspan=2)
-
-
-
-#
-# root = tk.Tk()
-# RoomCreator(root)
-# root.mainloop()

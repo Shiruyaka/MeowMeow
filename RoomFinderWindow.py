@@ -33,7 +33,3 @@ class RoomFinderWindow(tk.Frame):
         self.room_lists = tk.Listbox(master=self, width = 70, height = 30)
         self.room_lists.grid(sticky='nsew', columnspan = 2)
 
-
-root = tk.Tk()
-RoomFinderWindow(root)
-root.mainloop()

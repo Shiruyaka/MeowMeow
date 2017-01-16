@@ -9,6 +9,7 @@ import Database
 import User
 import Utils
 import Keyring
+import UserRoom
 
 
 class LoginWindow(tk.Frame):
@@ -51,7 +52,6 @@ class LoginWindow(tk.Frame):
             exit(0)
 
         ########## sprawdzac czy jest plik z priv keyring
-        print 'try'
         public_keyring = Keyring.import_keyring('pub')
         private_keyring = Keyring.import_keyring('priv')
         server_key = RSA.importKey(Keyring.find_pubkey_in_ring(public_keyring, whose='Server'))
@@ -61,20 +61,18 @@ class LoginWindow(tk.Frame):
         passh = sha1(self.password_entry.get()).hexdigest()
         msg = Utils.make_msg(('LOG', self.login_entry.get(), passh, Utils.get_key_id(user_key.publickey())))
 
-        # print server_key.exportKey()
-
         msg = Utils.pgp_enc_msg(server_key, user_key, msg)
         msg.ljust(8192, '=')
 
         self.server_conn.send(msg)
         respond = self.server_conn.recv(8192)
-        print 'resp'
         content = Utils.pgp_dec_msg(respond, public_keyring, private_keyring)
         print content
 
         if content[1] == 'OK':
+            user_rooms = list()
+
             user_data = list()
-            print('jestem w ifieee :D')
             user_data.append(content[2])
             user_data.append(self.login_entry.get())
             user_data.append(self.password_entry.get())
@@ -82,16 +80,22 @@ class LoginWindow(tk.Frame):
             user_data.append(content[4])
             user_data.append(content[5])
 
-            client = User.User(user_data, private_keyring, public_keyring, self.server_conn)
-            app = UserWindowWithTree.UserWindowWithTree(client, self.master)
+
+            if len(content) > 7: ##pozniej 8 jak bedzeimy wysylac nonce
+                for i in range(6,len(content) - 1):
+                     user_rooms.append(UserRoom.UserRoom.parse_room(content[i]))
+
+            client = User.User(user_data, private_keyring, public_keyring)
+            usrRecv = User.UserRecv(client, self.server_conn)
+            usrSend = User.UserSend(client, self.server_conn)
+
+            usrRecv.start()
+            usrSend.start()
+
+            app = UserWindowWithTree.UserWindowWithTree(client, usrRecv, usrSend, user_rooms, self.master)
             self.destroy()
         else:
             self.error_lbl.grid()
-
-
-
-
-
 
 
     def change_text(self, event):

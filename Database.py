@@ -52,7 +52,7 @@ class Database():
         cursor.close()
 
         if len(person_data) > 0:
-            return person_data[0]
+            return list(person_data[0])
         else: return list()
 
 
@@ -118,3 +118,21 @@ class Database():
         cursor.close()
 
         return Room.parse_rooms_from_db(rooms)
+
+    def get_room_participants(self, id):
+        usr_lst = list()
+        respond = None
+        cursor = self.connector.cursor()
+        cursor.callproc('GetParticipants', (id, ))
+
+        for i in cursor.stored_results():
+            respond = i.fetchall()
+
+        self.connector.commit()
+        cursor.close()
+
+        if len(respond) > 0:
+            for i in respond:
+                usr_lst.append(i[0])
+
+        return usr_lst

@@ -11,14 +11,13 @@ import base64
 import Keyring
 
 COLOR_OF_WINDOW = '#99CCFF'
-TYPE_OF_ROOM = ['Your rooms', 'Rooms', 'Friends']
+TYPE_OF_ROOM = ['My rooms', 'Rooms', 'Friends']
 IV = '0' * 16
 
 def login():
     pass
 
 def get_key_id(key_file):
-    print key_file
     key = key_file.exportKey(format = 'PEM')
     pub_key_id = key.split('-----')[2].lstrip().rstrip()
     pub_key_id = pub_key_id[-8:].replace('\n', '')

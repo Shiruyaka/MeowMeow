@@ -26,16 +26,14 @@ class Client(threading.Thread):
 
 
 class ClientRecv(Client):
-
-
-    def __init__(self, publicKeyRing, privateKeyRing, connection, client_send):
+    def __init__(self, publicKeyRing, privateKeyRing, connection, client_send, rooms):
         Client.__init__(self, publicKeyRing, privateKeyRing, connection)
 
         self.client_send = client_send
         self.db = Database.Database()
 
         self.end_conn = False
-        self.data = None
+        self.rooms = rooms
 
     def whatdo(self, content):
         answer_to_client = None
@@ -47,8 +45,12 @@ class ClientRecv(Client):
         elif content[0] == 'CRM':
             answer_to_client = self.createroom(content)
 
+        print len(answer_to_client)
         answer_to_client = answer_to_client.ljust(8192, '=')
         self.client_send.data.put(answer_to_client)
+
+        if self.end_conn == True:
+            self.client_send.end_conn = True
 
 
 
@@ -88,18 +90,27 @@ class ClientRecv(Client):
         return msg
 
     def authentication(self, data):
-        key_client = RSA.importKey(find_pubkey_in_ring(self.publicKeyRing, whose=data[1]))
+        print data
+        key_client = find_pubkey_in_ring(self.publicKeyRing, whose=data[1])
+
+        if key_client == []:
+            key_client = RSA.importKey(find_pubkey_in_ring(self.publicKeyRing, id=data[3]))
+        else:
+            key_client = RSA.importKey(key_client)
+
         key_server = RSA.importKey(self.privateKeyRing[0].priv_key)
-
         key_server_id = Utils.get_key_id(key_server.publickey())
-
         respond = self.db.verify(data[1], data[2])
         msg = None
 
         if len(respond) > 0:
+            print respond
             self.id = respond[0]
             self.nick = data[1]
+            for i in self.rooms:
 
+                if i.is_user_on_whitelist:
+                    respond.append(i.tostring())
             msg = 'LOG|OK|' + Utils.make_msg(respond)
             print 'Valid'
         else:
@@ -113,7 +124,6 @@ class ClientRecv(Client):
     def run(self):
 
         while not self.end_conn:
-            print 'wolololo'
             readable, writable, exceptional = select.select([self.connection], [], [])
 
             if readable[0]:
@@ -134,14 +144,12 @@ class ClientSend(Client):
         self.data = Queue.Queue()
 
     def run(self):
-         while not self.end_conn:
-             print 'Wolololo'
+         while not self.end_conn or not self.data.empty():
              readable, writable, exceptional = select.select([], [self.connection], [])
 
-             if writable[0] and self.data.empty():
-                 msg = self.data.get()
-                 print msg
-                 self.connection.send(msg)
+             if writable[0] and not self.data.empty():
+                msg = self.data.get()
+                self.connection.send(msg)
 
 
 
@@ -167,6 +175,10 @@ class Server(object):
         self.server.listen(5)
 
         self.rooms = self.db.get_all_rooms()
+
+        for i in self.rooms:
+            i.add_usr_whitelist(self.db.get_room_participants(i.id))
+
         self.server_loop()
 
     # def giving_out_data(self):
@@ -183,10 +195,10 @@ class Server(object):
         while True:
             CLIENT, ADDRESS = self.server.accept()
             c_send = ClientSend(self.publicKeyRing, self.privateKeyRing, CLIENT)
-            c_recv = ClientRecv(self.publicKeyRing, self.privateKeyRing, CLIENT, c_send)
+            c_recv = ClientRecv(self.publicKeyRing, self.privateKeyRing, CLIENT, c_send, self.rooms)
 
         #    connected_users.append((c_recv, c_send))
-            c_recv.start()
             c_send.start()
+            c_recv.start()
 
 

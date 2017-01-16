@@ -1,18 +1,24 @@
 import Tkinter as tk
 import ttk as ttk
+import Queue
 import RoomCreator
+import RoomFinderWindow
 import Utils
 
 
+
 class UserWindowWithTree(tk.Frame):
-    def __init__(self, client, master=None):
+    def __init__(self, client, user_recv, user_send, user_rooms, master=None):
+
+        self.client = client
+        self.usr_recv = user_recv
+        self.usr_send = user_send
+        self.rooms = user_rooms
 
         self.master = master
         self.master.title('MeowMeow')
         self.master.geometry('350x450')
         self.master.resizable(0,0)
-
-        self.client = client
 
         tk.Frame.__init__(self, master = self.master)
         self.grid(sticky = 'nsew')
@@ -21,12 +27,22 @@ class UserWindowWithTree(tk.Frame):
         self.rowconfigure(0, weight = 1)
         self.rowconfigure(1, weight=1)
         self.create_widgets()
-        print 'wlacz sie debilu'
+
+        for i in self.rooms:
+            if i.master == self.client.login:
+                self.rooms_tree.insert('My rooms', 'end', text=i.name, values=i)
+            else:
+                self.rooms_tree.insert('Rooms', 'end', text=i.name, values=i)
 
     def delete_attr(self):
         self.create_room_window.destroy()
         delattr(self, 'create_room_window')
         delattr(self, 'create_room_app')
+
+    def delete_finder(self):
+        self.find_room_window.destroy()
+        delattr(self, 'find_room_window')
+        delattr(self, 'find_room_app')
         pass
 
     def go_to_creating_room(self):
@@ -34,6 +50,13 @@ class UserWindowWithTree(tk.Frame):
             self.create_room_window = tk.Toplevel(self.master)
             self.create_room_app = RoomCreator.RoomCreator(self.create_room_window, self.client)
             self.create_room_window.protocol('WM_DELETE_WINDOW', self.delete_attr)
+        pass
+
+    def go_to_finder_room(self):
+        if hasattr(self, 'find_room_window') == False:
+            self.find_room_window = tk.Toplevel(self.master)
+            self.find_room_app = RoomFinderWindow.RoomFinderWindow(self.find_room_window)
+            self.find_room_window.protocol('WM_DELETE_WINDOW', self.delete_finder)
         pass
 
     def create_menu(self):
@@ -50,6 +73,7 @@ class UserWindowWithTree(tk.Frame):
         self.social_menu = tk.Menu(self.menu_bar, tearoff=0)
         self.menu_bar.add_cascade(label='Social', menu=self.social_menu)
         self.social_menu.add_command(label='Create room', command = self.go_to_creating_room)
+        self.social_menu.add_command(label='Find room', command = self.go_to_finder_room)
 
         self.file_menu.add_command(label='About')
 
@@ -61,7 +85,7 @@ class UserWindowWithTree(tk.Frame):
         self.rooms_tree.column('Online', width=50)
         self.rooms_tree.column('#0', width=285)
 
-        self.rooms_tree.insert("", 1, Utils.TYPE_OF_ROOM[0], text=Utils.TYPE_OF_ROOM[0])
+        self.rooms_tree.insert('', 1, Utils.TYPE_OF_ROOM[0], text=Utils.TYPE_OF_ROOM[0])
 
         self.rooms_tree.insert('', 2, Utils.TYPE_OF_ROOM[1], text=Utils.TYPE_OF_ROOM[1])
 
