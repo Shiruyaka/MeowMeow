@@ -10,6 +10,8 @@ import select
 import Queue
 from Keyring import PrivateRing, PublicRing, find_pubkey_in_ring
 
+MESSAGES_TO_ROOM = Queue.Queue()
+
 class Client(threading.Thread):
     def __init__(self, publicKeyRing, privateKeyRing, connection):
         threading.Thread.__init__(self)
@@ -90,7 +92,7 @@ class ClientRecv(Client):
         return msg
 
     def authentication(self, data):
-        print data
+
         key_client = find_pubkey_in_ring(self.publicKeyRing, whose=data[1])
 
         if key_client == []:
@@ -107,10 +109,11 @@ class ClientRecv(Client):
             print respond
             self.id = respond[0]
             self.nick = data[1]
-            for i in self.rooms:
 
+            for i in self.rooms:
                 if i.is_user_on_whitelist:
                     respond.append(i.tostring())
+
             msg = 'LOG|OK|' + Utils.make_msg(respond)
             print 'Valid'
         else:
@@ -124,16 +127,21 @@ class ClientRecv(Client):
     def run(self):
 
         while not self.end_conn:
-            readable, writable, exceptional = select.select([self.connection], [], [])
 
-            if readable[0]:
+            try:
+                readable, writable, exceptional = select.select([self.connection], [], [])
 
-                msg = self.connection.recv(8192)
-                content = Utils.pgp_dec_msg(msg, self.publicKeyRing, self.privateKeyRing) ## choosing key need
-                self.whatdo(content)
+                if readable[0]:
 
-                #code for send massage from room to client
+                    msg = self.connection.recv(8192)
+                    content = Utils.pgp_dec_msg(msg, self.publicKeyRing, self.privateKeyRing) ## choosing key need
+                    self.whatdo(content)
 
+                    #code for send massage from room to client
+            except select.error:
+                self.connection.close()
+                print 'Client disconnect suddenly'
+                break
 
 class ClientSend(Client):
 
@@ -146,12 +154,14 @@ class ClientSend(Client):
     def run(self):
          while not self.end_conn or not self.data.empty():
              readable, writable, exceptional = select.select([], [self.connection], [])
-
-             if writable[0] and not self.data.empty():
-                msg = self.data.get()
-                self.connection.send(msg)
-
-
+             try:
+                 if writable[0] and not self.data.empty():
+                    msg = self.data.get()
+                    self.connection.send(msg)
+             except select.error:
+                 self.connection.close()
+                 print 'Client disconnect suddenly'
+                 break
 
 
 
@@ -167,7 +177,7 @@ class Server(object):
 
         key = RSA.importKey(open('priv_key.pem', 'r'))
         id = Utils.get_key_id(key.publickey())
-        self.privateKeyRing.append(PrivateRing('',id , key.publickey().exportKey(), key.exportKey()))
+        self.privateKeyRing.append(PrivateRing('', id, key.publickey().exportKey(), key.exportKey()))
 
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -197,7 +207,7 @@ class Server(object):
             c_send = ClientSend(self.publicKeyRing, self.privateKeyRing, CLIENT)
             c_recv = ClientRecv(self.publicKeyRing, self.privateKeyRing, CLIENT, c_send, self.rooms)
 
-        #    connected_users.append((c_recv, c_send))
+            connected_users.append((c_recv, c_send))
             c_send.start()
             c_recv.start()
 

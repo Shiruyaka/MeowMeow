@@ -11,6 +11,7 @@ class UserRoom():
         self.kind = kind
         self.online = list()
 
+
     @staticmethod
     def parse_room(args):
         content = args.split('&')

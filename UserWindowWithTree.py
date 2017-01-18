@@ -4,6 +4,7 @@ import Queue
 import RoomCreator
 import RoomFinderWindow
 import Utils
+import ChatWindow
 
 
 
@@ -30,9 +31,12 @@ class UserWindowWithTree(tk.Frame):
 
         for i in self.rooms:
             if i.master == self.client.login:
-                self.rooms_tree.insert('My rooms', 'end', text=i.name, values=i)
+                self.rooms_tree.insert('My rooms', 'end', text=i.name, values=len(i.online))
             else:
-                self.rooms_tree.insert('Rooms', 'end', text=i.name, values=i)
+                self.rooms_tree.insert('Rooms', 'end', text=i.name, values=len(i.online))
+
+        self.room_windows = list()
+        self.room_apps = list()
 
     def delete_attr(self):
         self.create_room_window.destroy()
@@ -77,6 +81,21 @@ class UserWindowWithTree(tk.Frame):
 
         self.file_menu.add_command(label='About')
 
+
+    def delete_room(self):
+        for i in self.room_windows:
+            print i
+
+    def choose_room(self, event):
+        curitem = self.rooms_tree.focus()
+        name_of_room = self.rooms_tree.item(curitem)['text']
+        result = [x for x in self.rooms if x.name == name_of_room]
+        if not hasattr(self, name_of_room + 'window'):
+            self.room_windows.append(tk.Toplevel(self.master))
+            self.room_apps.append(ChatWindow.ChatWindow(self.room_windows[-1], result, self.room_windows,self.room_apps))
+
+
+
     def create_rooms_tree(self):
 
         self.rooms_tree = ttk.Treeview(master=self.master, columns=['Online'], height = 20)
@@ -96,7 +115,7 @@ class UserWindowWithTree(tk.Frame):
         self.tree_scrollbar.configure(command=self.rooms_tree.yview)
         self.rooms_tree.configure(yscrollcommand=self.tree_scrollbar.set)
         self.tree_scrollbar.grid(sticky=tk.N + tk.S, row=1, column=1)
-
+        self.rooms_tree.bind('<Double-1>', self.choose_room)
         self.rooms_tree.grid(row=1, column=0, sticky=tk.N + tk.S + tk.W + tk.E)
 
     def create_widgets(self):

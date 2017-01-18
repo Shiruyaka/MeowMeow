@@ -5,7 +5,7 @@ import Tkinter as tk
 
 
 class ChatWindow(tk.Frame):
-    def __init__(self, master):
+    def __init__(self, master, room, room_windows, room_apps):
         self.master = master
         self.master.title('Room')
         self.master.geometry('600x490')
@@ -16,7 +16,31 @@ class ChatWindow(tk.Frame):
         self.grid(sticky='nsew', row = 0, column = 0)
         self.create_widgets()
 
+        self.room = room
+        self.master.protocol('WM_DELETE_WINDOW', self.zabij_sie)
+        self.room_windows = room_windows
+        self.room_apps = room_apps
 
+        self.chat_txt.config(state=tk.NORMAL)
+        self.chat_txt.insert(tk.END, "Nia NIa nniiiii niiaaaaa")
+        self.chat_txt.config(state=tk.DISABLED)
+
+    @staticmethod
+    def add_new_message(window, content):
+        window.chat_txt.config(state=tk.NORMAL)
+        window.chat_txt.insert(tk.END, content)
+        window.chat_txt.config(state=tk.DISABLED)
+        window.chat_txt.grid
+
+
+    def zabij_sie(self):
+        no = None
+        for i in range(len(self.room_windows)):
+            if self.master == self.room_windows[i]:
+                del self.room_windows[i]
+                del self.room_apps[i]
+
+        self.master.destroy()
 
     def create_widgets(self):
         self.online_users = tk.Listbox(self, width=18, height=20)
@@ -38,3 +62,7 @@ class ChatWindow(tk.Frame):
 
         self.input_user_txt = tk.Text(master=self, width=62, height=8)
         self.input_user_txt.grid(column=0, row=2, rowspan=1, columnspan=2)
+
+root = tk.Tk()
+k = ChatWindow(root, None, None, None)
+root.mainloop()
