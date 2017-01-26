@@ -6,13 +6,14 @@ import Keyring
 import socket
 
 class RoomCreator(tk.Frame):
-    def __init__(self, master, client):
+    def __init__(self, master, user_send, user_recv):
         self.master = master
         self.master.title('Room creator')
         self.master.geometry('250x220')
         self.master.resizable(0, 0)
 
-        self.client = client
+        self.user_send = user_send
+        self.user_recv = user_recv
 
         tk.Frame.__init__(self, master=self.master)
         self.columnconfigure(0, weight=1)
@@ -39,15 +40,15 @@ class RoomCreator(tk.Frame):
         ##bez walidacji bo nie mam czasu na razie
         args = list()
         args.append('CRM')
-        args.append(self.client.id)
+        args.append(self.user_send.user.id)
         args.append(self.room_name_entry.get().rstrip())
         args.append(self.user_lim_combobx.get())
         args.append(self.type_of_room_combobx.get())
         args.append(self.room_desc_txt.get("1.0", 'end-1c'))
 
-        key_user = RSA.importKey(self.client.priv_keyring[0].priv_key)
+        key_user = RSA.importKey(self.user_send.user.priv_keyring[0].priv_key)
         key_id = Utils.get_key_id(key_user.publickey())
-        key_server = RSA.importKey(Keyring.find_pubkey_in_ring(self.client.pub_keyring, whose='Server'))
+        key_server = RSA.importKey(Keyring.find_pubkey_in_ring(self.user_send.user.pub_keyring, whose='Server'))
         args.append(key_id)
 
         msg = Utils.make_msg(args)
@@ -55,10 +56,16 @@ class RoomCreator(tk.Frame):
        # print len(msg)
 
         msg.ljust(8192, '=')
-        self.client.conn.send(msg)
-        respond = self.client.conn.recv(8192)
+        self.user_send.data.put(msg)
 
-        print Utils.pgp_dec_msg(respond, self.client.pub_keyring, self.client.priv_keyring)
+        while(self.user_recv.create_room_answer == None):
+            pass
+
+        msg = self.user_recv.create_room_answer
+        print msg
+        self.user_recv.create_room_answer = None
+
+        #print Utils.pgp_dec_msg(respond, self.client.pub_keyring, self.client.priv_keyring)
 
 
     def create_widgets(self):

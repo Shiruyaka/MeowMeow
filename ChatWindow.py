@@ -21,16 +21,10 @@ class ChatWindow(tk.Frame):
         self.room_windows = room_windows
         self.room_apps = room_apps
 
+    def add_new_message(self, content):
         self.chat_txt.config(state=tk.NORMAL)
-        self.chat_txt.insert(tk.END, "Nia NIa nniiiii niiaaaaa")
+        self.chat_txt.insert(tk.END, content)
         self.chat_txt.config(state=tk.DISABLED)
-
-    @staticmethod
-    def add_new_message(window, content):
-        window.chat_txt.config(state=tk.NORMAL)
-        window.chat_txt.insert(tk.END, content)
-        window.chat_txt.config(state=tk.DISABLED)
-        window.chat_txt.grid
 
 
     def zabij_sie(self):
@@ -62,7 +56,3 @@ class ChatWindow(tk.Frame):
 
         self.input_user_txt = tk.Text(master=self, width=62, height=8)
         self.input_user_txt.grid(column=0, row=2, rowspan=1, columnspan=2)
-
-root = tk.Tk()
-k = ChatWindow(root, None, None, None)
-root.mainloop()

@@ -100,7 +100,7 @@ class Database():
         cmd = 'SELECT CreateRoom(%s,%s,%s,%s,%s)'
         cursor.execute(cmd, (RoomName, RoomDesc, RoomMaster, RoomMaxOnline, RoomKind))
         id = (cursor.fetchall()[0])[0]
-
+        cursor.callproc('InsertParticipant', (id, RoomMaster))
         self.connector.commit()
         cursor.close()
 

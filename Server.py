@@ -36,6 +36,7 @@ class ClientRecv(Client):
 
         self.end_conn = False
         self.rooms = rooms
+        print len(rooms)
 
     def whatdo(self, content):
         answer_to_client = None
@@ -46,13 +47,38 @@ class ClientRecv(Client):
             answer_to_client = self.authentication(content)
         elif content[0] == 'CRM':
             answer_to_client = self.createroom(content)
+        elif content[0] == 'LRM':
+            answer_to_client = self.getlistofrooms(content)
+        else:
+            self.end_conn == True
+            answer_to_client = 'NOT THIS TIME MALLORY'
 
-        print len(answer_to_client)
+        #print len(answer_to_client)
         answer_to_client = answer_to_client.ljust(8192, '=')
         self.client_send.data.put(answer_to_client)
 
         if self.end_conn == True:
             self.client_send.end_conn = True
+
+    def getlistofrooms(self,data):
+
+        kind = data[1]
+        lst_of_rooms = list()
+        lst_of_rooms.append('LRM')
+
+        for rm in self.rooms:
+            if rm.kind == kind and rm.signed < rm.lim_in_room and not rm.is_user_on_whitelist(self.nick):
+                lst_of_rooms.append(rm.tostring())
+
+        key_client = RSA.importKey(find_pubkey_in_ring(self.publicKeyRing, whose=self.nick))
+        key_server = RSA.importKey(self.privateKeyRing[0].priv_key)
+        key_server_id = Utils.get_key_id(key_server.publickey())
+
+        lst_of_rooms.append(key_server_id)
+        msg = Utils.make_msg(lst_of_rooms)
+
+
+        return Utils.pgp_enc_msg(key_client, key_server, msg)
 
 
 
@@ -106,12 +132,12 @@ class ClientRecv(Client):
         msg = None
 
         if len(respond) > 0:
-            print respond
             self.id = respond[0]
             self.nick = data[1]
 
             for i in self.rooms:
-                if i.is_user_on_whitelist:
+                print i.whitelist
+                if i.is_user_on_whitelist(self.nick):
                     respond.append(i.tostring())
 
             msg = 'LOG|OK|' + Utils.make_msg(respond)
@@ -188,6 +214,7 @@ class Server(object):
 
         for i in self.rooms:
             i.add_usr_whitelist(self.db.get_room_participants(i.id))
+            print i.whitelist
 
         self.server_loop()
 

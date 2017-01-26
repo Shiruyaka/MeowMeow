@@ -2,6 +2,7 @@
 
 class UserRoom():
     def __init__(self, id, name, desc, master, signed, lim_in_room, kind):
+
         self.id = id
         self.name = name
         self.desc = desc

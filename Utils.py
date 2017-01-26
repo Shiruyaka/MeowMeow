@@ -102,7 +102,6 @@ def make_msg(msg_content):
 
     return msg
 
-
 class OwnerTrust:
     ultimate_trust = 1
     always_trusted = 2

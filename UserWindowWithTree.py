@@ -52,14 +52,14 @@ class UserWindowWithTree(tk.Frame):
     def go_to_creating_room(self):
         if hasattr(self, 'create_room_window') == False:
             self.create_room_window = tk.Toplevel(self.master)
-            self.create_room_app = RoomCreator.RoomCreator(self.create_room_window, self.client)
+            self.create_room_app = RoomCreator.RoomCreator(self.create_room_window, self.usr_send, self.usr_recv)
             self.create_room_window.protocol('WM_DELETE_WINDOW', self.delete_attr)
         pass
 
     def go_to_finder_room(self):
         if hasattr(self, 'find_room_window') == False:
             self.find_room_window = tk.Toplevel(self.master)
-            self.find_room_app = RoomFinderWindow.RoomFinderWindow(self.find_room_window)
+            self.find_room_app = RoomFinderWindow.RoomFinderWindow(self.find_room_window, self.rooms, self.usr_send, self.usr_recv )
             self.find_room_window.protocol('WM_DELETE_WINDOW', self.delete_finder)
         pass
 
@@ -93,7 +93,6 @@ class UserWindowWithTree(tk.Frame):
         if not hasattr(self, name_of_room + 'window'):
             self.room_windows.append(tk.Toplevel(self.master))
             self.room_apps.append(ChatWindow.ChatWindow(self.room_windows[-1], result, self.room_windows,self.room_apps))
-
 
 
     def create_rooms_tree(self):

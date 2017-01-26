@@ -29,6 +29,21 @@ class UserRecv(threading.Thread):
         self.daemon = True
         self.end_conn = False
 
+        self.list_of_rooms = None
+        self.create_room_answer = None
+
+    def whatdo(self, content):
+
+        if content[0] == 'CRM':
+            if content[1] == 'OK':
+                self.create_room_answer = content[2]
+            else: self.create_room_answer = 'The name of room must be unique'
+
+        if content[0] == 'LRM':
+            print content
+
+
+
     def run(self):
 
         while not self.end_conn:
@@ -38,7 +53,7 @@ class UserRecv(threading.Thread):
 
                 msg = self.connection.recv(8192)
                 content = Utils.pgp_dec_msg(msg, self.user.pub_keyring, self.user.priv_keyring) ## choosing key need
-
+                self.whatdo(content)
 
 class UserSend(threading.Thread):
 
@@ -56,7 +71,7 @@ class UserSend(threading.Thread):
 
             readable, writable, exceptional = select.select([], [self.connection], [])
 
-            if writable[0] and self.data.empty():
+            if writable[0] and not self.data.empty():
                 msg = self.data.get()
                 self.connection.send(msg)
 

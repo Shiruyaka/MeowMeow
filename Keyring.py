@@ -2,6 +2,7 @@
 
 from collections import namedtuple
 import time
+import random
 
 PrivateRing = namedtuple('PrivateRing', 'timestamp key_id pub_key priv_key')
 PublicRing  = namedtuple('PublicRing', 'timestamp key_id pub_key owner_trust user_name key_legit')
@@ -70,6 +71,11 @@ def find_privkey_in_ring(ring, id):
         return result[0]
     else:
         return []
+
+def choose_randomly_enc_key(ring):
+    ind = random.randint(0,len(ring))
+    return ring[ind].priv_key
+
 
 def parse_keys_from_db(data):
     ring = list()
