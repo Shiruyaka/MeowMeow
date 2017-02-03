@@ -8,14 +8,14 @@ def parse_rooms_from_db(data):
 
         if tmp == None:
             tmp = 0
-        rooms.append(Room(i[0], i[1], i[2], i[3], tmp, i[5], i[6]))
+        rooms.append(Room(i[0], i[1], i[2], i[3], tmp, i[5]))
 
     return rooms
 
 
 
 class Room():
-    def __init__(self, id, name, desc, master, signed, lim_in_room, kind):
+    def __init__(self, id, name, desc, master, signed, lim_in_room):
 
         self.id = id
         self.name = name
@@ -24,7 +24,6 @@ class Room():
         self.signed = signed
         self.lim_in_room = lim_in_room
         self.whitelist = list()
-        self.kind = kind
         self.online = list()
 
     def add_usr_whitelist(self, lst):
@@ -39,4 +38,4 @@ class Room():
 
     def tostring(self):
         return '[' +  str(self.id) + '&' + self.name + '&' + self.desc + '&' + self.master + '&' \
-               + str(self.signed) + '&' + str(self.lim_in_room) + '&' + self.kind + ']'
+               + str(self.signed) + '&' + str(self.lim_in_room) + ']'

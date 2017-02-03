@@ -6,6 +6,7 @@ from Crypto import Random
 from Crypto.Hash import SHA256
 from Crypto.Cipher import PKCS1_OAEP, AES
 from time import gmtime, strftime
+import random
 from hashlib import sha1
 import base64
 import Keyring
@@ -60,8 +61,8 @@ def pgp_dec_msg(msg, publicKeyRing, privateKeyRing):
 
     id_of_key = base64.b64decode(content[0])
     server_key = Keyring.find_privkey_in_ring(privateKeyRing, id_of_key)
-
-    rsadecrypt = PKCS1_OAEP.new(RSA.importKey(server_key))
+    print server_key
+    rsadecrypt = PKCS1_OAEP.new(server_key)
     sessionkey = rsadecrypt.decrypt(base64.b64decode(content[1]))
     aes = AES.new(sessionkey, AES.MODE_CBC, IV)
 
@@ -78,7 +79,7 @@ def pgp_dec_msg(msg, publicKeyRing, privateKeyRing):
         id_of_key = msg_de[0].split('|')[-1]
         client_key = Keyring.find_pubkey_in_ring(publicKeyRing, id_of_key)
 
-    veryfier = PKCS1_v1_5.new(RSA.importKey(client_key))
+    veryfier = PKCS1_v1_5.new(client_key)
     digest = SHA256.new()
     digest.update(msg_de[0])
 
@@ -98,6 +99,7 @@ def make_msg(msg_content):
     for i in range(len(msg_content) - 1) :
         msg += str(msg_content[i]) + '|'
 
+    msg = msg + str(random.randint(0, 100000000)) + '|'
     msg = msg + str(msg_content[-1])
 
     return msg

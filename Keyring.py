@@ -3,6 +3,7 @@
 from collections import namedtuple
 import time
 import random
+from Crypto.PublicKey import RSA
 
 PrivateRing = namedtuple('PrivateRing', 'timestamp key_id pub_key priv_key')
 PublicRing  = namedtuple('PublicRing', 'timestamp key_id pub_key owner_trust user_name key_legit')
@@ -11,20 +12,24 @@ def import_keyring(typeOfKeyRing):
 
     ring = list()
 
-    with open(typeOfKeyRing + '_keyring.txt', 'r') as r:
+    try:
+        with open(typeOfKeyRing + '_keyring.txt', 'r') as r:
 
-        data = r.read()
-        data = data.rstrip().split('@')
+            data = r.read()
+            data = data.rstrip().split('@')
 
-        for line in data:
-            if not line:
-                continue
-            line = line.rstrip().split('|')
+            for line in data:
+                if not line:
+                    continue
+                line = line.rstrip().split('|')
 
-            if typeOfKeyRing == 'priv':
-                ring.append(PrivateRing(*line))
-            elif typeOfKeyRing == 'pub':
-                ring.append(PublicRing(*line))
+                if typeOfKeyRing == 'priv':
+                    ring.append(PrivateRing(*line))
+                elif typeOfKeyRing == 'pub':
+                    ring.append(PublicRing(*line))
+    except IOError:
+        new_file = open(typeOfKeyRing + '_keyring.txt', 'w')
+        new_file.close()
 
     return ring
 
@@ -55,26 +60,29 @@ def find_pubkey_in_ring(ring, id = None, whose = None):
     if id:
         result = [x.pub_key for x in ring if x.key_id == id]
         if len(result) == 0:
-            return []
+            return None
         else:
-            return result[0]
+            return RSA.importKey(result[0])
     elif whose:
         result = [x.pub_key for x in ring if x.user_name == whose]
         if len(result) == 0:
-            return []
+            return None
         else:
-            return result[0]
+            print len(result)
+            ind = random.randint(0, len(result) - 1)
+            print ind
+            return RSA.importKey(result[ind])
 
 def find_privkey_in_ring(ring, id):
     result = [x.priv_key for x in ring if x.key_id == id]
     if len(result) != 0:
-        return result[0]
+        return RSA.importKey(result[0])
     else:
         return []
 
 def choose_randomly_enc_key(ring):
-    ind = random.randint(0,len(ring))
-    return ring[ind].priv_key
+    ind = random.randint(0,len(ring) - 1)
+    return RSA.importKey(ring[ind].priv_key), ring[ind].key_id
 
 
 def parse_keys_from_db(data):

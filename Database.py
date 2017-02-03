@@ -94,11 +94,11 @@ class Database():
 
         return result
 
-    def create_room(self, RoomName, RoomDesc, RoomMaster, RoomMaxOnline, RoomKind):
+    def create_room(self, RoomName, RoomDesc, RoomMaster, RoomMaxOnline):
         id = None
         cursor = self.connector.cursor()
-        cmd = 'SELECT CreateRoom(%s,%s,%s,%s,%s)'
-        cursor.execute(cmd, (RoomName, RoomDesc, RoomMaster, RoomMaxOnline, RoomKind))
+        cmd = 'SELECT CreateRoom(%s,%s,%s,%s)'
+        cursor.execute(cmd, (RoomName, RoomDesc, RoomMaster, RoomMaxOnline))
         id = (cursor.fetchall()[0])[0]
         cursor.callproc('InsertParticipant', (id, RoomMaster))
         self.connector.commit()

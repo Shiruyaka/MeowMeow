@@ -43,12 +43,11 @@ class RoomCreator(tk.Frame):
         args.append(self.user_send.user.id)
         args.append(self.room_name_entry.get().rstrip())
         args.append(self.user_lim_combobx.get())
-        args.append(self.type_of_room_combobx.get())
         args.append(self.room_desc_txt.get("1.0", 'end-1c'))
 
         key_user = RSA.importKey(self.user_send.user.priv_keyring[0].priv_key)
         key_id = Utils.get_key_id(key_user.publickey())
-        key_server = RSA.importKey(Keyring.find_pubkey_in_ring(self.user_send.user.pub_keyring, whose='Server'))
+        key_server = Keyring.find_pubkey_in_ring(self.user_send.user.pub_keyring, whose='Server')
         args.append(key_id)
 
         msg = Utils.make_msg(args)
@@ -83,13 +82,12 @@ class RoomCreator(tk.Frame):
         self.user_lim_combobx['values'] = (range(26)[1:])
         self.user_lim_combobx.grid(column = 0, columnspan = 3, sticky = 'nsew')
 
-        self.type_of_room_lbl = tk.Label(master = self, text='Type of room')
-        self.type_of_room_lbl.grid(column = 1)
-
-        self.type_of_room_value = tk.StringVar()
-        self.type_of_room_combobx = ttk.Combobox(master = self, textvariable=self.type_of_room_value)
-        self.type_of_room_combobx['values'] = ('Private', 'Public')
-        self.type_of_room_combobx.grid(column = 0, columnspan = 3, sticky = 'nsew')
+        #self.type_of_room_lbl = tk.Label(master = self, text='Type of room')
+        #self.type_of_room_lbl.grid(column = 1)
+        #self.type_of_room_value = tk.StringVar()
+        #self.type_of_room_combobx = ttk.Combobox(master = self, textvariable=self.type_of_room_value)
+        #self.type_of_room_combobx['values'] = ('Private', 'Public')
+        #self.type_of_room_combobx.grid(column = 0, columnspan = 3, sticky = 'nsew')
 
         self.room_desc_lbl = tk.Label(master = self, text='Desc')
         self.room_desc_txt = tk.Text(master=self, height = 3, width = 23)

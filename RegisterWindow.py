@@ -114,24 +114,28 @@ class RegisterWindow(tk.Frame):
             key_server_id = Utils.get_key_id(key_server_pub)
 
             msg = Utils.make_msg(args)
-            msg = Utils.pgp_enc_msg(key_server_pub,key,msg)
+            msg = Utils.pgp_enc_msg(key_server_pub, key,msg)
             msg = msg.ljust(8192, '=')
-            #print len(msg)
+
             self.server_conn.send(msg)
             respond = self.server_conn.recv(8192)
+
+            with open('pub_keyring.txt', 'w') as file:
+                msg = Utils.make_msg(
+                    ('', key_server_id, key_server_pub.exportKey(), Utils.OwnerTrust.always_trusted, 'Server', 1))
+                msg += '@'
+                file.write(msg)
+
+            with open('priv_keyring.txt', 'w') as file:
+                # PrivateRing = namedtuple('PrivateRing', 'timestamp key_id pub_key priv_key')
+                msg = Utils.make_msg((data, id, pubkey, key.exportKey()))
+                file.write(msg + '@')
+
             respond = Utils.pgp_dec_msg(respond, self.public_keyring, self.private_kering)
 
 
             if respond[1] == 'OK':
                 self.error_label.forget()
-                with open('priv_keyring.txt', 'w') as file:
-                    #PrivateRing = namedtuple('PrivateRing', 'timestamp key_id pub_key priv_key')
-                    msg = Utils.make_msg((data, id, pubkey, key.exportKey()))
-                    file.write(msg + '@')
-                with open('pub_keyring.txt', 'w') as file:
-                    msg = Utils.make_msg(('',key_server_id, key_server_pub.exportKey(), Utils.OwnerTrust.always_trusted, 'Server', 1))
-                    msg += '@'
-                    file.write(msg)
 
                 self.master.destroy()
             else:

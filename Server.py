@@ -8,7 +8,8 @@ import Utils
 import Database
 import select
 import Queue
-from Keyring import PrivateRing, PublicRing, find_pubkey_in_ring
+from Keyring import PrivateRing, PublicRing, find_pubkey_in_ring, choose_randomly_enc_key
+
 
 MESSAGES_TO_ROOM = Queue.Queue()
 
@@ -36,7 +37,7 @@ class ClientRecv(Client):
 
         self.end_conn = False
         self.rooms = rooms
-        print len(rooms)
+
 
     def whatdo(self, content):
         answer_to_client = None
@@ -49,6 +50,8 @@ class ClientRecv(Client):
             answer_to_client = self.createroom(content)
         elif content[0] == 'LRM':
             answer_to_client = self.getlistofrooms(content)
+        elif content[0] == 'KEY':
+            answer_to_client = self.add_new_key(content)
         else:
             self.end_conn == True
             answer_to_client = 'NOT THIS TIME MALLORY'
@@ -60,17 +63,31 @@ class ClientRecv(Client):
         if self.end_conn == True:
             self.client_send.end_conn = True
 
-    def getlistofrooms(self,data):
 
-        kind = data[1]
+    def add_new_key(self, data):
+
+        client_key = find_pubkey_in_ring(self.publicKeyRing, whose=data[4])
+
+        pub_key_id = Utils.get_key_id(RSA.importKey(data[2]))
+        self.db.add_key(pub_key_id, data[3], data[2], data[1])
+        self.publicKeyRing.append(PublicRing(data[1], pub_key_id, data[2], 0, data[4], 0))
+
+        privkey, id = choose_randomly_enc_key(self.privateKeyRing)
+        msg =  Utils.make_msg(['KEY', 'Done', id])
+
+        msg = Utils.pgp_enc_msg(client_key, privkey, msg)
+        return msg
+
+    def getlistofrooms(self, data):
+
         lst_of_rooms = list()
         lst_of_rooms.append('LRM')
 
         for rm in self.rooms:
-            if rm.kind == kind and rm.signed < rm.lim_in_room and not rm.is_user_on_whitelist(self.nick):
+            if rm.signed < rm.lim_in_room and not rm.is_user_on_whitelist(self.nick):
                 lst_of_rooms.append(rm.tostring())
 
-        key_client = RSA.importKey(find_pubkey_in_ring(self.publicKeyRing, whose=self.nick))
+        key_client = find_pubkey_in_ring(self.publicKeyRing, whose=self.nick)
         key_server = RSA.importKey(self.privateKeyRing[0].priv_key)
         key_server_id = Utils.get_key_id(key_server.publickey())
 
@@ -80,11 +97,9 @@ class ClientRecv(Client):
 
         return Utils.pgp_enc_msg(key_client, key_server, msg)
 
-
-
     def createroom(self, data):
-        respond = self.db.create_room(data[2], data[5], data[1], data[3], data[4])
-        key_client = RSA.importKey(find_pubkey_in_ring(self.publicKeyRing, whose=self.nick))
+        respond = self.db.create_room(data[2], data[4], data[1], data[3])
+        key_client = find_pubkey_in_ring(self.publicKeyRing, whose=self.nick)
         key_server = RSA.importKey(self.privateKeyRing[0].priv_key)
 
         key_server_id = Utils.get_key_id(key_server.publickey())
@@ -107,9 +122,9 @@ class ClientRecv(Client):
             pub_key_id = Utils.get_key_id(pubkey_client)
             self.db.add_key(pub_key_id, id, data[7], data[6])
             self.publicKeyRing.append(PublicRing(data[6], pub_key_id, data[7], 0, data[1], 0))
-            msg = 'REG|OK'
+            msg = 'REGRES|OK'
         else:
-            msg = 'REG|WRONG'
+            msg = 'REGRES|WRONG'
 
         msg = msg + '|' + key_id
         msg = Utils.pgp_enc_msg(pubkey_client, privkey_serv, msg)
@@ -121,10 +136,10 @@ class ClientRecv(Client):
 
         key_client = find_pubkey_in_ring(self.publicKeyRing, whose=data[1])
 
-        if key_client == []:
-            key_client = RSA.importKey(find_pubkey_in_ring(self.publicKeyRing, id=data[3]))
-        else:
-            key_client = RSA.importKey(key_client)
+        if key_client is None:
+            key_client = find_pubkey_in_ring(self.publicKeyRing, id=data[3])
+        #else:
+        #    key_client = RSA.importKey(key_client)
 
         key_server = RSA.importKey(self.privateKeyRing[0].priv_key)
         key_server_id = Utils.get_key_id(key_server.publickey())
@@ -136,7 +151,6 @@ class ClientRecv(Client):
             self.nick = data[1]
 
             for i in self.rooms:
-                print i.whitelist
                 if i.is_user_on_whitelist(self.nick):
                     respond.append(i.tostring())
 
@@ -160,11 +174,16 @@ class ClientRecv(Client):
                 if readable[0]:
 
                     msg = self.connection.recv(8192)
-                    content = Utils.pgp_dec_msg(msg, self.publicKeyRing, self.privateKeyRing) ## choosing key need
-                    self.whatdo(content)
+
+                    if msg is not '':
+                        content = Utils.pgp_dec_msg(msg, self.publicKeyRing, self.privateKeyRing) ## choosing key need
+                        self.whatdo(content)
+                    else:
+                        self.end_conn = True
+                        self.client_send.end_conn = True
 
                     #code for send massage from room to client
-            except select.error:
+            except IndexError:
                 self.connection.close()
                 print 'Client disconnect suddenly'
                 break
@@ -179,15 +198,17 @@ class ClientSend(Client):
 
     def run(self):
          while not self.end_conn or not self.data.empty():
-             readable, writable, exceptional = select.select([], [self.connection], [])
              try:
+                 readable, writable, exceptional = select.select([], [self.connection], [self.connection])
+
                  if writable[0] and not self.data.empty():
                     msg = self.data.get()
                     self.connection.send(msg)
-             except select.error:
+             except:
                  self.connection.close()
                  print 'Client disconnect suddenly'
-                 break
+                 self.end_conn = True
+
 
 
 
@@ -214,7 +235,6 @@ class Server(object):
 
         for i in self.rooms:
             i.add_usr_whitelist(self.db.get_room_participants(i.id))
-            print i.whitelist
 
         self.server_loop()
 

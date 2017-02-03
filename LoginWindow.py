@@ -54,7 +54,7 @@ class LoginWindow(tk.Frame):
         ########## sprawdzac czy jest plik z priv keyring
         public_keyring = Keyring.import_keyring('pub')
         private_keyring = Keyring.import_keyring('priv')
-        server_key = RSA.importKey(Keyring.find_pubkey_in_ring(public_keyring, whose='Server'))
+        server_key = Keyring.find_pubkey_in_ring(public_keyring, whose='Server')
         user_key = RSA.importKey(private_keyring[0].priv_key)  # powinno jeszcze id zwracac?
             ##na razie tylko jedna osoba na komputerze
 
@@ -67,7 +67,6 @@ class LoginWindow(tk.Frame):
         self.server_conn.send(msg)
         respond = self.server_conn.recv(8192)
         content = Utils.pgp_dec_msg(respond, public_keyring, private_keyring)
-        print content
 
         if content[1] == 'OK':
             user_rooms = list()
@@ -81,9 +80,10 @@ class LoginWindow(tk.Frame):
             user_data.append(content[5])
 
 
-            if len(content) > 7: ##pozniej 8 jak bedzeimy wysylac nonce
-                for i in range(6,len(content) - 1):
-                     user_rooms.append(UserRoom.UserRoom.parse_room(content[i]))
+            if len(content) > 8: ##pozniej 8 jak bedzeimy wysylac nonce
+                for i in range(7,len(content) - 1):
+                    print content[i]
+                    user_rooms.append(UserRoom.UserRoom.parse_room(content[i]))
 
             client = User.User(user_data, private_keyring, public_keyring)
             usrRecv = User.UserRecv(client, self.server_conn)

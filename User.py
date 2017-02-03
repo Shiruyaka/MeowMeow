@@ -3,6 +3,8 @@ import threading
 import socket
 import select
 import Queue
+import re
+import UserRoom
 import Utils
 
 class User():
@@ -31,6 +33,7 @@ class UserRecv(threading.Thread):
 
         self.list_of_rooms = None
         self.create_room_answer = None
+        self.add_key_answer = None
 
     def whatdo(self, content):
 
@@ -39,9 +42,16 @@ class UserRecv(threading.Thread):
                 self.create_room_answer = content[2]
             else: self.create_room_answer = 'The name of room must be unique'
 
-        if content[0] == 'LRM':
-            print content
+        elif content[0] == 'LRM':
+            self.list_of_rooms = list()
 
+            for i in range(1, len(content) - 2, 1):
+                content[i] = re.sub('\]', '', content[i])
+                content[i] = re.sub('\[', '', content[i])
+                self.list_of_rooms.append(UserRoom.UserRoom.parse_room(content[i]))
+
+        elif content[0] == 'KEY':
+            self.add_key_answer = content[1]
 
 
     def run(self):
@@ -65,6 +75,7 @@ class UserSend(threading.Thread):
         self.daemon = True
         self.end_conn = False
         self.data = Queue.Queue()
+
     def run(self):
 
         while not self.end_conn:

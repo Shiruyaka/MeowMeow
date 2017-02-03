@@ -1,11 +1,12 @@
 import Tkinter as tk
 import ttk as ttk
 import Queue
+from Crypto.PublicKey import RSA
 import RoomCreator
 import RoomFinderWindow
 import Utils
 import ChatWindow
-
+import Keyring
 
 
 class UserWindowWithTree(tk.Frame):
@@ -63,6 +64,35 @@ class UserWindowWithTree(tk.Frame):
             self.find_room_window.protocol('WM_DELETE_WINDOW', self.delete_finder)
         pass
 
+    def add_new_key(self):
+
+        args = ['KEY', ]
+
+        data, key = Utils.generate_new_pair_key()
+        pubkey = key.publickey().exportKey(format='PEM')
+        id = Utils.get_key_id(key.publickey())
+
+        args.append(data)
+        args.append(pubkey)
+        args.append(self.client.id)
+        args.append(self.client.login)
+
+        key_user, key_id = Keyring.choose_randomly_enc_key(self.usr_send.user.priv_keyring)
+        key_server = Keyring.find_pubkey_in_ring(self.client.pub_keyring, whose='Server')
+
+        args.append(key_id)
+        msg = Utils.make_msg(args)
+
+        msg = Utils.pgp_enc_msg(key_server, key_user, msg)
+        self.usr_send.data.put(msg)
+
+        while self.usr_recv.add_key_answer is None: continue
+
+        if self.usr_recv.add_key_answer == 'Done':
+            print 'Done'
+            Keyring.add_to_keyring(self.usr_send.user.priv_keyring, 'priv', [data, id, pubkey, key.exportKey('PEM')])
+            Keyring.export_keyring(self.usr_send.user.priv_keyring, 'priv')
+
     def create_menu(self):
         top = self.winfo_toplevel()
         self.menu_bar = tk.Menu(top)
@@ -73,6 +103,7 @@ class UserWindowWithTree(tk.Frame):
 
         self.security_menu = tk.Menu(self.menu_bar, tearoff=0)
         self.menu_bar.add_cascade(label='Security', menu=self.security_menu)
+        self.security_menu.add_command(label='Add new key', command = self.add_new_key)
 
         self.social_menu = tk.Menu(self.menu_bar, tearoff=0)
         self.menu_bar.add_cascade(label='Social', menu=self.social_menu)
@@ -93,7 +124,6 @@ class UserWindowWithTree(tk.Frame):
         if not hasattr(self, name_of_room + 'window'):
             self.room_windows.append(tk.Toplevel(self.master))
             self.room_apps.append(ChatWindow.ChatWindow(self.room_windows[-1], result, self.room_windows,self.room_apps))
-
 
     def create_rooms_tree(self):
 
